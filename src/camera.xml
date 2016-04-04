@@ -1,0 +1,26 @@
+<Intrinsics Type="6" Rows="3" Cols="3">
+    <Row>
+        <Column>4615.04</Column>
+        <Column>0</Column>
+        <Column>1113.41</Column>
+    </Row>
+    <Row>
+        <Column>0</Column>
+        <Column>4615.51</Column>
+        <Column>480.016</Column>
+    </Row>
+    <Row>
+        <Column>0</Column>
+        <Column>0</Column>
+        <Column>1</Column>
+    </Row>
+</Intrinsics>
+<Distortion Type="6" Rows="1" Cols="5">
+    <Row>
+        <Column>-0.0506472</Column>
+        <Column>-1.45132</Column>
+        <Column>0.000868025</Column>
+        <Column>0.00298601</Column>
+        <Column>8.92225</Column>
+    </Row>
+</Distortion>
