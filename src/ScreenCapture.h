@@ -28,6 +28,7 @@
 #include <osgDB/WriteFile>
 
 #include <unistd.h>
+#include <stdio.h>
 
 class ScreenCapture : public osg::Camera::DrawCallback
 {

@@ -20,10 +20,6 @@ osgDB/XmlParser
 math.h
 -
 
-/home/marco/Uni/Elaborazione Dati 3D/Competition/src/ScreenCapture.cpp
-ScreenCapture.h
-/home/marco/Uni/Elaborazione Dati 3D/Competition/src/ScreenCapture.h
-
 /home/marco/Uni/Elaborazione Dati 3D/Competition/src/ScreenCapture.h
 iostream
 -
@@ -74,5 +70,7 @@ osgDB/ReadFile
 osgDB/WriteFile
 -
 unistd.h
+-
+stdio.h
 -
 
