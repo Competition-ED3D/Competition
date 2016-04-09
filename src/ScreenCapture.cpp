@@ -8,8 +8,6 @@ ScreenCapture::ContextData::ContextData(osg::GraphicsContext* gc, GLenum readBuf
                 _type(GL_UNSIGNED_BYTE),
                 _width(0),
                 _height(0),
-                _currentImageIndex(0),
-                _currentPboIndex(0),
                 _imgCount(0)
 
             {
@@ -35,10 +33,6 @@ void ScreenCapture::ContextData::getSize(osg::GraphicsContext* gc, int& width, i
                     
 void ScreenCapture::ContextData::readPixels()
 {
-    //std::cout<<"readPixels("<<_fileName<<" image "<<_currentImageIndex<<" "<<_currentPboIndex<<std::endl;
-    unsigned int nextImageIndex = (_currentImageIndex+1)%_imageBuffer.size();
-    unsigned int nextPboIndex = _pboBuffer.empty() ? 0 : (_currentPboIndex+1)%_pboBuffer.size();
-
     int width=0, height=0;
     getSize(_gc, width, height);
     if (width!=_width || _height!=height)
@@ -48,7 +42,7 @@ void ScreenCapture::ContextData::readPixels()
         _height = height;
     }
 
-    osg::Image* image = _imageBuffer[_currentImageIndex].get();
+    osg::Image* image = _imageBuffer[0].get();
 
     image->readPixels(0,0,_width,_height,
                       _pixelFormat,_type);
@@ -59,9 +53,6 @@ void ScreenCapture::ContextData::readPixels()
     {
         osgDB::writeImageFile(*image, _fileName);
     }
-
-    _currentImageIndex = nextImageIndex;
-    _currentPboIndex = nextPboIndex;
 
     _imgCount++;
 }
@@ -74,7 +65,6 @@ ScreenCapture::ScreenCapture(GLenum readBuffer):
 ScreenCapture::ContextData* ScreenCapture::createContextData(osg::GraphicsContext* gc) const
         {
             std::stringstream filename;
-            std::cout<<"_contextDataMap.size() "<<_contextDataMap.size() << std::endl;
             filename << "test_"<<_contextDataMap.size()<<".jpg";
             return new ContextData(gc, _readBuffer, filename.str());
         }

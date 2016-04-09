@@ -41,7 +41,6 @@ class ScreenCapture : public osg::Camera::DrawCallback
             void readPixels();
         
             typedef std::vector< osg::ref_ptr<osg::Image> >             ImageBuffer;
-            typedef std::vector< GLuint > PBOBuffer;
         
             osg::GraphicsContext*   _gc;
             GLenum                  _readBuffer;
@@ -52,11 +51,7 @@ class ScreenCapture : public osg::Camera::DrawCallback
             int                     _width;
             int                     _height;
             
-            unsigned int            _currentImageIndex;
             ImageBuffer             _imageBuffer;
-            
-            unsigned int            _currentPboIndex;
-            PBOBuffer               _pboBuffer;
 
             unsigned int            _imgCount;
 
