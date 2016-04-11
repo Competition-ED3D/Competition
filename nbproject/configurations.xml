@@ -31,9 +31,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0"
-                 commonFlags="-mtune=generic -march=x86-64 -std=c++11 -fstack-protector"/>
-        <element flagsID="1" commonFlags="-std=c++11"/>
+        <element flagsID="0" commonFlags="-std=c++11"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -50,14 +48,16 @@
         </preBuild>
       </makefileType>
       <item path="src/Scanner.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
+        <ccTool flags="0">
           <incDir>
+            <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/local/include</pElem>
             <pElem>.</pElem>
           </incDir>
         </ccTool>
       </item>
       <item path="src/Scanner_orig.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
+        <ccTool flags="0">
           <incDir>
             <pElem>.</pElem>
           </incDir>
@@ -66,29 +66,17 @@
       <item path="src/ScreenCapture.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
           <incDir>
-            <pElem>/usr/include/OpenThreads</pElem>
-            <pElem>/usr/include/osg</pElem>
-            <pElem>/usr/include/osgDB</pElem>
-            <pElem>src</pElem>
-            <pElem>/usr/include/osgUtil</pElem>
-            <pElem>/usr/include/osgGA</pElem>
-            <pElem>/usr/include/osgViewer</pElem>
-            <pElem>/usr/include/osgText</pElem>
+            <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/local/include</pElem>
             <pElem>.</pElem>
           </incDir>
-          <preprocessorList>
-            <Elem>__GNUC_STDC_INLINE__=1</Elem>
-            <Elem>__GXX_EXPERIMENTAL_CXX0X__=1</Elem>
-            <Elem>__REGISTER_PREFIX__=</Elem>
-            <Elem>__STRICT_ANSI__=1</Elem>
-            <Elem>__USER_LABEL_PREFIX__=</Elem>
-            <Elem>__cplusplus=201103L</Elem>
-          </preprocessorList>
         </ccTool>
       </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
+        <ccTool flags="0">
           <incDir>
+            <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/local/include</pElem>
             <pElem>.</pElem>
           </incDir>
         </ccTool>
