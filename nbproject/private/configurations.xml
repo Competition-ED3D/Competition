@@ -5,8 +5,10 @@
       <df name="CMakeFiles">
         <df name="2.8.12.2">
           <df name="CompilerIdC">
+            <in>CMakeCCompilerId.c</in>
           </df>
           <df name="CompilerIdCXX">
+            <in>CMakeCXXCompilerId.cpp</in>
           </df>
         </df>
         <df name="CMakeTmp">
@@ -65,8 +67,9 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>"${OUTPUT_PATH}" ciao</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <runcommand>"${OUTPUT_PATH}" ciao</runcommand>
         <rundir>.</rundir>
         <buildfirst>true</buildfirst>
         <terminal-type>0</terminal-type>

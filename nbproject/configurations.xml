@@ -50,6 +50,7 @@
       <item path="src/Scanner.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
           <incDir>
+            <pElem>/usr/include/opencv</pElem>
             <pElem>/usr/local/include</pElem>
             <pElem>.</pElem>
           </incDir>
@@ -65,6 +66,7 @@
       <item path="src/ScreenCapture.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
           <incDir>
+            <pElem>/usr/include/opencv</pElem>
             <pElem>/usr/local/include</pElem>
             <pElem>.</pElem>
           </incDir>
@@ -73,6 +75,7 @@
       <item path="src/main.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
           <incDir>
+            <pElem>/usr/include/opencv</pElem>
             <pElem>/usr/local/include</pElem>
             <pElem>.</pElem>
           </incDir>

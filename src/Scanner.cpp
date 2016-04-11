@@ -6,7 +6,7 @@ double EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
               pow(point1.z() - point2.z(), 2));
 }
 
-int Scanner() {
+int Scanner(InputParameters *input_parameters) {
   osg::Group* root = new osg::Group();
   osg::Geode* plane_geode = new osg::Geode();
   osg::Geometry* plane_left = new osg::Geometry();

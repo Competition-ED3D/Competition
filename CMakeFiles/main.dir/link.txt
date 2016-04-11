@@ -1,1 +1,0 @@
-/usr/bin/g++    -std=c++11 -g3 -gdwarf-2    CMakeFiles/main.dir/src/main.cpp.o CMakeFiles/main.dir/src/Scanner.cpp.o CMakeFiles/main.dir/src/ScreenCapture.cpp.o  -o main -rdynamic -losg -losgDB -losgViewer -losgGA -losgUtil -lOpenThreads -lGLU -lGL -lSM -lICE -lX11 -lXext 

@@ -29,6 +29,11 @@
 
 #include <unistd.h>
 
+using std::string;
+using std::cout;
+using std::endl;
+using std::cerr;
+
 class ScreenCapture : public osg::Camera::DrawCallback
 {
     public:
