@@ -41,11 +41,6 @@
           <buildCommand>${MAKE} -j4 -f Makefile</buildCommand>
           <cleanCommand>${MAKE} -j4 -f Makefile clean</cleanCommand>
           <executablePath>main</executablePath>
-          <ccTool>
-            <incDir>
-              <pElem>.</pElem>
-            </incDir>
-          </ccTool>
         </makeTool>
         <preBuild>
           <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
@@ -54,18 +49,33 @@
       </makefileType>
       <item path="src/Scanner.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
+          <incDir>
+            <pElem>/usr/local/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
         </ccTool>
       </item>
       <item path="src/Scanner_orig.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
+          <incDir>
+            <pElem>.</pElem>
+          </incDir>
         </ccTool>
       </item>
       <item path="src/ScreenCapture.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
+          <incDir>
+            <pElem>/usr/local/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
         </ccTool>
       </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
+          <incDir>
+            <pElem>/usr/local/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
         </ccTool>
       </item>
     </conf>

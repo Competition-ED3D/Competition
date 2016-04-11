@@ -16,7 +16,7 @@ int Scanner() {
 
   osg::Node* model = NULL;
 
-  model = osgDB::readNodeFile("src/cow.osg");
+  model = osgDB::readNodeFile("data/bin2.stl");
 
   plane_geode->addDrawable(plane_left);
   plane_geode->addDrawable(plane_right);
@@ -90,7 +90,7 @@ int Scanner() {
       osg::StateAttribute::ON);
   //////////////////////////////////////////////////////////////////////////////
 
-  root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+  //root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
   osgViewer::Viewer viewer;
   
 	unsigned int width=2500;
@@ -105,7 +105,7 @@ int Scanner() {
 
   std::cout << "Dopo nomeTantoCarino" << std::endl;
   
-  //viewer.setCameraManipulator(new osgGA::TrackballManipulator());
+  viewer.setCameraManipulator(new osgGA::TrackballManipulator());
   
 	osg::Matrixd cameraTrans;
   /*cameraRotation.makeRotate(
@@ -121,7 +121,7 @@ int Scanner() {
   double camera_z = 15;
 
   cameraTrans.makeTranslate(camera_x, camera_y, -camera_z );
-  viewer.getCamera()->setViewMatrix(cameraTrans);
+  //viewer.getCamera()->setViewMatrix(cameraTrans);
 
   viewer.realize();
   
@@ -138,7 +138,7 @@ int Scanner() {
   //while(!viewer.done()){
     //int k=0;
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, -camera_z);
-    viewer.getCamera()->setViewMatrix(cameraTrans);
+    //viewer.getCamera()->setViewMatrix(cameraTrans);
 
     double laser_distance = 5;
     
@@ -243,7 +243,7 @@ void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections
         osg::Geometry* line = new osg::Geometry();
         line->setVertexArray(intersections.at(i));
         line->setColorArray(intersection_line_color);
-        line->setColorBinding(osg::Geometry::BIND_OVERALL);
+        line->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
         if (intersections.at(i)->size() > 1) {
           line->addPrimitiveSet(new osg::DrawArrays(
               osg::PrimitiveSet::LINE_STRIP, 0, intersections.at(i)->size()));
