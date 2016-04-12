@@ -116,12 +116,12 @@ int Scanner(InputParameters *input_parameters) {
   
   double camera_x = 300;
   double camera_y = 0;
-  double camera_z = 750;
+  double camera_z = -750;
 
   //viewer.setCameraManipulator(new osgGA::TrackballManipulator());
 
   
-  cameraTrans.makeTranslate(camera_x, camera_y, -camera_z );
+  cameraTrans.makeTranslate(camera_x, camera_y, camera_z );
   viewer.getCamera()->setViewMatrix(cameraTrans);
 
   viewer.realize();
@@ -141,27 +141,27 @@ int Scanner(InputParameters *input_parameters) {
   std::cout << "Prima del ciclo" << std::endl;
 
   viewer.frame();
-  for(int k=0; k<30; k++) {
+  for(int k=0; k<15; k++) {
   //while(!viewer.done()){
     //int k=0;
-    cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, -camera_z);
+    cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
 
-    double laser_distance = 10;
+    double laser_distance = 500;
     
     //double laser_incline = 68.1301;
-    double laser_incline = 80;
+    double laser_incline = 45;
     //double laser_incline = 50.1301;
     //double laser_aperture = 22.62;
     double laser_aperture = 45;
     
-    osg::Vec3d start_left = osg::Vec3d(-camera_x, laser_distance + k * step_y+camera_y, camera_z);
+    osg::Vec3d start_left = osg::Vec3d(-camera_x, laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_left;
 
     std::cout << "intersezioni sinistra" << std::endl;
     ComputeIntersections(start_left, step_x, step_y, threshold, model, laser_incline, laser_aperture, false, &intersections_left);
 
-    osg::Vec3d start_right = osg::Vec3d(-camera_x, -laser_distance + k * step_y+camera_y, camera_z);
+    osg::Vec3d start_right = osg::Vec3d(-camera_x, -laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_right;
 
     std::cout << "intersezioni destra" << std::endl;
@@ -190,19 +190,16 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
     laser_incline = 2*M_PI*laser_incline/360;
     laser_aperture = 2*M_PI*laser_aperture/360;    
     
-    double laser_height = EuclideanDistance(osg::Vec3d(start.x(),start.y(),-10),start);
+    double laser_height = EuclideanDistance(osg::Vec3d(start.x(),start.y(),-1000),start);
     double laser_length = laser_height/cos(M_PI/2-laser_incline);
     double laser_width_half = tan(laser_aperture/2)*laser_length;
     
     double end_x_coord = start.x();
     double end_y_coord = laser_length*sin(M_PI/2-laser_incline); //coordinata y
-    double end_z_coord = -10;
+    double end_z_coord = -1000;
     
     double x_start = start.x() + laser_width_half;
     double x_end = start.x() - laser_width_half;
-    
-    double camera_x = 300;
-    double camera_y = 0;
     
     if(start.y() < end_y_coord){
       end_y_coord = - end_y_coord;
@@ -212,7 +209,7 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
       osg::Vec3d end;
       if(side) {//destra 
           //end = osg::Vec3d(x_start + i * step_x, -10+16.5, -10);
-        end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start)/2-camera_x , -end_y_coord+start.y()+camera_y, end_z_coord);
+        end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start)/2 , -end_y_coord+start.y(), end_z_coord);
         /*std::cout << "x_start: " << x_start << std::endl;
         std::cout << "y_start: " << start.y()<< std::endl;
         std::cout << "x_end right: " << end_x_coord + abs(x_end - x_start)/2 << std::endl; 
@@ -220,7 +217,7 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
       }
       else {//sinistra
           //end = osg::Vec3d(x_start + i * step_x, -10, -10);
-        end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start)/2-camera_x, end_y_coord + start.y()+camera_y, end_z_coord);
+        end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start)/2, end_y_coord + start.y(), end_z_coord);
         /*std::cout << "x_start: " << x_start << std::end_x_coord + i * step_x + abs(x_end - x_start)/2ndl;
         std::cout << "y_start: " << start.y() << std::endl;
         std::cout << "x_end left: " << end_x_coord + abs(x_end - x_start)/2 << std::endl; 
