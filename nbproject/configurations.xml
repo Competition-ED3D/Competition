@@ -13,6 +13,7 @@
         </df>
       </df>
       <df name="src">
+        <in>ImageProcessing.cpp</in>
         <in>Scanner.cpp</in>
         <in>Scanner_orig.cpp</in>
         <in>ScreenCapture.cpp</in>
@@ -69,17 +70,17 @@
       <item path="/usr/share/cmake-2.8/Modules/CMakeCCompilerABI.c"
             ex="false"
             tool="0"
-            flavor2="0">
+            flavor2="2">
       </item>
       <item path="/usr/share/cmake-2.8/Modules/CMakeCXXCompilerABI.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
+            flavor2="4">
       </item>
       <item path="/usr/share/cmake-2.8/Modules/CheckFunctionExists.c"
             ex="false"
             tool="0"
-            flavor2="0">
+            flavor2="2">
         <cTool>
           <preprocessorList>
             <Elem>CHECK_FUNCTION_EXISTS=XOpenDisplay</Elem>
@@ -89,12 +90,12 @@
       <item path="CMakeFiles/2.8.12.2/CompilerIdC/CMakeCCompilerId.c"
             ex="false"
             tool="0"
-            flavor2="0">
+            flavor2="2">
       </item>
       <item path="CMakeFiles/2.8.12.2/CompilerIdCXX/CMakeCXXCompilerId.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
+            flavor2="4">
       </item>
       <folder path="Modules">
         <cTool>
@@ -108,6 +109,15 @@
           </incDir>
         </ccTool>
       </folder>
+      <item path="src/ImageProcessing.cpp" ex="false" tool="1" flavor2="8">
+        <ccTool flags="0">
+          <incDir>
+            <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/local/include</pElem>
+            <pElem>.</pElem>
+          </incDir>
+        </ccTool>
+      </item>
       <item path="src/Scanner.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
           <incDir>

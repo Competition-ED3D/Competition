@@ -16,7 +16,7 @@ int Scanner(InputParameters *input_parameters) {
 
   osg::Node* model = NULL;
 
-  model = osgDB::readNodeFile("data/bin2.stl");
+  model = osgDB::readNodeFile("data/prodotto.stl");
 
   plane_geode->addDrawable(plane_left);
   plane_geode->addDrawable(plane_right);
@@ -90,18 +90,18 @@ int Scanner(InputParameters *input_parameters) {
       osg::StateAttribute::ON);
   //////////////////////////////////////////////////////////////////////////////
 
-  //root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+  root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
   osgViewer::Viewer viewer;
   
-	unsigned int width=2500;
-	unsigned int height=1500;
+	unsigned int width=2024;
+	unsigned int height=1088;
   osg::ref_ptr<osg::Camera> camera = new osg::Camera;
   
   osg::Matrixd intrinsics_matrix;
   std::vector<double> distortion_matrix;  
   IntrinsicsParser("src/camera.xml", intrinsics_matrix, distortion_matrix);
   
-  //InitializeCamera(&viewer, camera, width, height, intrinsics_matrix);
+  InitializeCamera(&viewer, camera, width, height, intrinsics_matrix);
 
   std::cout << "Dopo nomeTantoCarino" << std::endl;
   
@@ -114,9 +114,9 @@ int Scanner(InputParameters *input_parameters) {
   // 60 meters behind and 7 meters above the tank model
   viewer.setSceneData(root);
   
-  double camera_x = 0;
+  double camera_x = 300;
   double camera_y = 0;
-  double camera_z = -3000;
+  double camera_z = -750;
 
   //viewer.setCameraManipulator(new osgGA::TrackballManipulator());
 
@@ -127,11 +127,11 @@ int Scanner(InputParameters *input_parameters) {
   
   viewer.addSlave(camera.get(), osg::Matrixd(), osg::Matrixd());
   
-  double scanning_speed = 10000;
+  double scanning_speed = 100;
   double fps = 100;
   
   //double step_x = 0.02;
-  double step_x = 10;
+  double step_x = 1;
   //double threshold = 0.35;
   double threshold = EuclideanDistance(osg::Vec3d(0,0,0),osg::Vec3d(step_x,step_x,step_x));
   //double step_y = 0.1;
@@ -142,14 +142,14 @@ int Scanner(InputParameters *input_parameters) {
   viewer.frame();
   for(int k=0; k<15; k++) {
   //while(!viewer.done()){
-    //int k=0;
+    k=1;
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
 
-    double laser_distance = 800;
+    double laser_distance = 500;
     
     //double laser_incline = 68.1301;
-    double laser_incline = 60;
+    double laser_incline = 65;
     //double laser_incline = 50.1301;
     //double laser_aperture = 22.62;
     double laser_aperture = 45;
@@ -173,6 +173,7 @@ int Scanner(InputParameters *input_parameters) {
     /////////////////////////////////////////////////////////
     sleep(2);
     intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
+    k=15;
     //intersection_line_geode->removeDrawables (1, intersections_right.size());
   }
 

@@ -1,6 +1,8 @@
 #ifndef SCREENCAPTURE_H
 #define SCREENCAPTURE_H
 
+#include "ImageProcessing.h"
+
 #include <iostream>
 #include <sstream>
 #include <string>

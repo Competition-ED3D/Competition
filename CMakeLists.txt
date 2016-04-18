@@ -21,12 +21,14 @@ FIND_PACKAGE(OpenCV)
 SET(HEADERS 
    src/Scanner.h
    src/ScreenCapture.h
+   src/ImageProcessing.h
 )
 
 SET(SOURCES
 src/main.cpp
 src/Scanner.cpp
 src/ScreenCapture.cpp
+src/ImageProcessing.cpp
 )
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")

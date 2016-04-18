@@ -4,7 +4,7 @@ ScreenCapture::ContextData::ContextData(osg::GraphicsContext* gc, GLenum readBuf
                 _gc(gc),
                 _readBuffer(readBuffer),
                 _fileName(name),
-                _pixelFormat(GL_RGB),
+                _pixelFormat(GL_BGR),
                 _type(GL_UNSIGNED_BYTE),
                 _width(0),
                 _height(0),
@@ -47,11 +47,15 @@ void ScreenCapture::ContextData::readPixels()
     image->readPixels(0,0,_width,_height,
                       _pixelFormat,_type);
 
-    _fileName = "test_" + std::to_string(_imgCount) + ".jpg";
+    //_fileName = "test_" + std::to_string(_imgCount) + ".png";
+    
+    ImageProcessing(image);
+    
+    
 
     if (!_fileName.empty())
     {
-        osgDB::writeImageFile(*image, _fileName);
+        //osgDB::writeImageFile(*image, _fileName);
     }
 
     _imgCount++;

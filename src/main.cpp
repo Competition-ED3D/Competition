@@ -1,6 +1,5 @@
 #include "Scanner.h"
 
-#include <opencv2/core/core.hpp>
 
 bool InputParser(string filename, InputParameters *input_parameters) {
   cv::FileStorage fs(filename, cv::FileStorage::READ);
@@ -59,6 +58,9 @@ int main(int argc, char *argv[]) {
     cout<<"Error in input file"<<endl;
   }
   Scanner(input_parameters);
+  //ImageProcessing("roi_left.png");
+  
+  
   return 0;
 }
 

@@ -114,6 +114,30 @@ main/fast:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
 .PHONY : main/fast
 
+src/ImageProcessing.o: src/ImageProcessing.cpp.o
+.PHONY : src/ImageProcessing.o
+
+# target to build an object file
+src/ImageProcessing.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ImageProcessing.cpp.o
+.PHONY : src/ImageProcessing.cpp.o
+
+src/ImageProcessing.i: src/ImageProcessing.cpp.i
+.PHONY : src/ImageProcessing.i
+
+# target to preprocess a source file
+src/ImageProcessing.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ImageProcessing.cpp.i
+.PHONY : src/ImageProcessing.cpp.i
+
+src/ImageProcessing.s: src/ImageProcessing.cpp.s
+.PHONY : src/ImageProcessing.s
+
+# target to generate assembly for a file
+src/ImageProcessing.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/ImageProcessing.cpp.s
+.PHONY : src/ImageProcessing.cpp.s
+
 src/Scanner.o: src/Scanner.cpp.o
 .PHONY : src/Scanner.o
 
@@ -195,6 +219,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... main"
 	@echo "... rebuild_cache"
+	@echo "... src/ImageProcessing.o"
+	@echo "... src/ImageProcessing.i"
+	@echo "... src/ImageProcessing.s"
 	@echo "... src/Scanner.o"
 	@echo "... src/Scanner.i"
 	@echo "... src/Scanner.s"

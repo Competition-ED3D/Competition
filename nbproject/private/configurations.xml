@@ -21,6 +21,8 @@
       <df name="data">
       </df>
       <df name="src">
+        <in>ImageProcessing.cpp</in>
+        <in>ImageProcessing.h</in>
         <in>Scanner.cpp</in>
         <in>Scanner.h</in>
         <in>Scanner_orig.cpp</in>
