@@ -40,7 +40,6 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
                           osg::Node* model, double laser_incline, double laser_aperture, bool side,
                           std::vector<osg::ref_ptr<osg::Vec3Array> > *intersections);
 void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
-                        osg::Vec4Array* intersection_line_color,
                         osg::Geode* intersection_line_geode);
 bool IntrinsicsParser(std::string filename, osg::Matrixd &intrinsics_matrix, std::vector<double> &distortion_matrix);
 

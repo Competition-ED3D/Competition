@@ -35,15 +35,15 @@ int Scanner(InputParameters *input_parameters) {
   plane_left->setColorArray(planes_color);
   plane_left->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 
-  osg::Vec4Array* intersection_line_color = new osg::Vec4Array;
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.2f));  // index 0 red
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.2f));  // index 1 green
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.2f));  // index 2 blue
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.2f));  // index 3 white
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 0.2f));  // index 4 red
+  /*osg::Vec4Array* intersection_line_color = new osg::Vec4Array;
+  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 0 red
+  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 1 green
+  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 2 blue
+  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 3 white
+  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 4 red
 
   plane_right->setColorArray(intersection_line_color);
-  plane_right->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+  plane_right->setColorBinding(osg::Geometry::BIND_PER_VERTEX);*/
   
 /*
   osg::Vec3Array* planeVertices1 = new osg::Vec3Array;
@@ -74,11 +74,11 @@ int Scanner(InputParameters *input_parameters) {
 */
 
   osg::Point* point = new osg::Point;
-  point->setSize(7);
+  point->setSize(2.0f);
   root->getOrCreateStateSet()->setAttribute(point);
 
   osg::LineWidth* linewidth = new osg::LineWidth();
-  linewidth->setWidth(7.0f);
+  linewidth->setWidth(2.0f);
   root->getOrCreateStateSet()->setAttributeAndModes(linewidth,
                                                     osg::StateAttribute::ON);
 
@@ -101,11 +101,9 @@ int Scanner(InputParameters *input_parameters) {
   std::vector<double> distortion_matrix;  
   IntrinsicsParser("src/camera.xml", intrinsics_matrix, distortion_matrix);
   
-  InitializeCamera(&viewer, camera, width, height, intrinsics_matrix);
+  //InitializeCamera(&viewer, camera, width, height, intrinsics_matrix);
 
   std::cout << "Dopo nomeTantoCarino" << std::endl;
-  
-  viewer.setCameraManipulator(new osgGA::TrackballManipulator());
   
 	osg::Matrixd cameraTrans;
   /*cameraRotation.makeRotate(
@@ -118,53 +116,62 @@ int Scanner(InputParameters *input_parameters) {
   
   double camera_x = 0;
   double camera_y = 0;
-  double camera_z = 15;
+  double camera_z = -3000;
 
-  cameraTrans.makeTranslate(camera_x, camera_y, -camera_z );
-  //viewer.getCamera()->setViewMatrix(cameraTrans);
+  //viewer.setCameraManipulator(new osgGA::TrackballManipulator());
+
+  cameraTrans.makeTranslate(camera_x, camera_y, camera_z );
+  viewer.getCamera()->setViewMatrix(cameraTrans);
 
   viewer.realize();
   
   viewer.addSlave(camera.get(), osg::Matrixd(), osg::Matrixd());
   
-  double step_x = 0.02;
-  double threshold = 0.35;
-  double step_y = 0.1;
-
+  double scanning_speed = 10000;
+  double fps = 100;
+  
+  //double step_x = 0.02;
+  double step_x = 10;
+  //double threshold = 0.35;
+  double threshold = EuclideanDistance(osg::Vec3d(0,0,0),osg::Vec3d(step_x,step_x,step_x));
+  //double step_y = 0.1;
+  double step_y = scanning_speed/fps;
+  
   std::cout << "Prima del ciclo" << std::endl;
 
   viewer.frame();
   for(int k=0; k<15; k++) {
   //while(!viewer.done()){
     //int k=0;
-    cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, -camera_z);
-    //viewer.getCamera()->setViewMatrix(cameraTrans);
+    cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
+    viewer.getCamera()->setViewMatrix(cameraTrans);
 
-    double laser_distance = 5;
+    double laser_distance = 800;
     
-    double laser_incline = 68.1301;
+    //double laser_incline = 68.1301;
+    double laser_incline = 60;
     //double laser_incline = 50.1301;
-    double laser_aperture = 22.62;
-    //double laser_aperture = 45;
+    //double laser_aperture = 22.62;
+    double laser_aperture = 45;
     
-    osg::Vec3d start_left = osg::Vec3d(0, laser_distance + k * step_y, camera_z);
+    osg::Vec3d start_left = osg::Vec3d(-camera_x, laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_left;
 
     std::cout << "intersezioni sinistra" << std::endl;
     ComputeIntersections(start_left, step_x, step_y, threshold, model, laser_incline, laser_aperture, false, &intersections_left);
 
-    osg::Vec3d start_right = osg::Vec3d(0, -laser_distance + k * step_y, camera_z);
+    osg::Vec3d start_right = osg::Vec3d(-camera_x, -laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_right;
 
     std::cout << "intersezioni destra" << std::endl;
     ComputeIntersections(start_right, step_x, step_y, threshold, model, laser_incline, laser_aperture, true, &intersections_right);
     
-   	ShowIntersections (intersections_right, intersection_line_color, intersection_line_geode);
-   	ShowIntersections (intersections_left, intersection_line_color, intersection_line_geode);
+   	ShowIntersections (intersections_right, intersection_line_geode);
+   	ShowIntersections (intersections_left, intersection_line_geode);
     
     viewer.frame();
     /////////////////////////////////////////////////////////
-    sleep(1);
+    sleep(2);
     intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
     //intersection_line_geode->removeDrawables (1, intersections_right.size());
   }
@@ -182,13 +189,13 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
     laser_incline = 2*M_PI*laser_incline/360;
     laser_aperture = 2*M_PI*laser_aperture/360;    
     
-    double laser_height = EuclideanDistance(osg::Vec3d(start.x(),start.y(),-10),start);
+    double laser_height = EuclideanDistance(osg::Vec3d(start.x(),start.y(),-1000),start);
     double laser_length = laser_height/cos(M_PI/2-laser_incline);
     double laser_width_half = tan(laser_aperture/2)*laser_length;
     
     double end_x_coord = start.x();
     double end_y_coord = laser_length*sin(M_PI/2-laser_incline); //coordinata y
-    double end_z_coord = -10;
+    double end_z_coord = -1000;
     
     double x_start = start.x() + laser_width_half;
     double x_end = start.x() - laser_width_half;
@@ -222,7 +229,7 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
       if (intersector->containsIntersections()) {
          if(vertices->size()!=0 &&
          (EuclideanDistance(vertices->at(vertices->size()-1),
-          intersector->getFirstIntersection().localIntersectionPoint) >
+          intersector->getFirstIntersection().localIntersectionPoint) >=
           threshold)) {
           intersections->push_back(vertices);
           std::cout << "number of points: " << vertices->size() << std::endl;
@@ -237,12 +244,16 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
 }
 
 void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
-                        osg::Vec4Array* intersection_line_color,
                         osg::Geode* intersection_line_geode) {
   for (int i = 0; i < intersections.size(); i++) {
         osg::Geometry* line = new osg::Geometry();
         line->setVertexArray(intersections.at(i));
-        line->setColorArray(intersection_line_color);
+        //line->setColorArray(intersection_line_color);
+        osg::Vec4Array* intersections_line_color = new osg::Vec4Array;
+        for(int j = 0; j<intersections.at(i)->size(); j++){
+          intersections_line_color->push_back(osg::Vec4(1,0,0,1));
+        }
+        line->setColorArray(intersections_line_color);
         line->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
         if (intersections.at(i)->size() > 1) {
           line->addPrimitiveSet(new osg::DrawArrays(
