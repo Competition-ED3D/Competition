@@ -113,18 +113,44 @@
         <ccTool flags="0">
           <incDir>
             <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/include/vtk-5.8</pElem>
             <pElem>/usr/local/include</pElem>
+            <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>/usr/include/eigen3</pElem>
+            <pElem>/usr/include/ni</pElem>
+            <pElem>/usr/include/openni2</pElem>
             <pElem>.</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>DISABLE_PCAP</Elem>
+            <Elem>DISABLE_PNG</Elem>
+            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+            <Elem>FLANN_STATIC</Elem>
+            <Elem>qh_QHpointer</Elem>
+          </preprocessorList>
         </ccTool>
       </item>
       <item path="src/Scanner.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
           <incDir>
             <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/include/vtk-5.8</pElem>
             <pElem>/usr/local/include</pElem>
+            <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>/usr/include/eigen3</pElem>
+            <pElem>/usr/include/ni</pElem>
+            <pElem>/usr/include/openni2</pElem>
             <pElem>.</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>DISABLE_PCAP</Elem>
+            <Elem>DISABLE_PNG</Elem>
+            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+            <Elem>FLANN_STATIC</Elem>
+            <Elem>qh_QHpointer</Elem>
+          </preprocessorList>
         </ccTool>
       </item>
       <item path="src/Scanner_orig.cpp" ex="false" tool="1" flavor2="8">
@@ -138,18 +164,44 @@
         <ccTool flags="0">
           <incDir>
             <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/include/vtk-5.8</pElem>
             <pElem>/usr/local/include</pElem>
+            <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>/usr/include/eigen3</pElem>
+            <pElem>/usr/include/ni</pElem>
+            <pElem>/usr/include/openni2</pElem>
             <pElem>.</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>DISABLE_PCAP</Elem>
+            <Elem>DISABLE_PNG</Elem>
+            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+            <Elem>FLANN_STATIC</Elem>
+            <Elem>qh_QHpointer</Elem>
+          </preprocessorList>
         </ccTool>
       </item>
       <item path="src/main.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
           <incDir>
             <pElem>/usr/include/opencv</pElem>
+            <pElem>/usr/include/vtk-5.8</pElem>
             <pElem>/usr/local/include</pElem>
+            <pElem>/usr/include/pcl-1.7</pElem>
+            <pElem>/usr/include/eigen3</pElem>
+            <pElem>/usr/include/ni</pElem>
+            <pElem>/usr/include/openni2</pElem>
             <pElem>.</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>DISABLE_PCAP</Elem>
+            <Elem>DISABLE_PNG</Elem>
+            <Elem>EIGEN_USE_NEW_STDVECTOR</Elem>
+            <Elem>EIGEN_YES_I_KNOW_SPARSE_MODULE_IS_NOT_STABLE_YET</Elem>
+            <Elem>FLANN_STATIC</Elem>
+            <Elem>qh_QHpointer</Elem>
+          </preprocessorList>
         </ccTool>
       </item>
     </conf>

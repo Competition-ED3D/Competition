@@ -1,5 +1,7 @@
 #include "Scanner.h"
 
+
+
 double EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
   return sqrt(pow(point1.x() - point2.x(), 2) +
               pow(point1.y() - point2.y(), 2) +
@@ -90,7 +92,7 @@ int Scanner(InputParameters *input_parameters) {
       osg::StateAttribute::ON);
   //////////////////////////////////////////////////////////////////////////////
 
-  root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+  //root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
   osgViewer::Viewer viewer;
   
 	unsigned int width=2024;
@@ -100,7 +102,7 @@ int Scanner(InputParameters *input_parameters) {
   osg::Matrixd intrinsics_matrix;
   std::vector<double> distortion_matrix;  
   IntrinsicsParser("src/camera.xml", intrinsics_matrix, distortion_matrix);
-  
+
   InitializeCamera(&viewer, camera, width, height, intrinsics_matrix);
 
   std::cout << "Dopo nomeTantoCarino" << std::endl;
@@ -138,7 +140,7 @@ int Scanner(InputParameters *input_parameters) {
   double step_y = scanning_speed/fps;
   
   std::cout << "Prima del ciclo" << std::endl;
-
+  //viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
   viewer.frame();
   for(int k=0; k<15; k++) {
   //while(!viewer.done()){
@@ -168,8 +170,9 @@ int Scanner(InputParameters *input_parameters) {
     
    	ShowIntersections (intersections_right, intersection_line_geode);
    	ShowIntersections (intersections_left, intersection_line_geode);
-    
+        
     viewer.frame();
+    
     /////////////////////////////////////////////////////////
     sleep(2);
     intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());

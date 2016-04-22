@@ -9,13 +9,12 @@ ScreenCapture::ContextData::ContextData(osg::GraphicsContext* gc, GLenum readBuf
                 _width(0),
                 _height(0),
                 _imgCount(0)
-
             {
 
                 getSize(gc, _width, _height);
                 
                 std::cout<<"Window size "<<_width<<", "<<_height<<std::endl;
-            
+                
                 // single buffered image
                 _imageBuffer.push_back(new osg::Image);
                 
@@ -46,16 +45,17 @@ void ScreenCapture::ContextData::readPixels()
 
     image->readPixels(0,0,_width,_height,
                       _pixelFormat,_type);
-
-    //_fileName = "test_" + std::to_string(_imgCount) + ".png";
+    
+    cout<<"callback: cols"<<image->s()<<", rows"<<image->t()<<endl;
+    cout << "_image indirizzo " << image <<endl;
+    
+    _fileName = "test_" + std::to_string(_imgCount) + ".png";
     
     ImageProcessing(image);
     
-    
-
     if (!_fileName.empty())
     {
-        //osgDB::writeImageFile(*image, _fileName);
+        osgDB::writeImageFile(*image, _fileName);
     }
 
     _imgCount++;
@@ -84,6 +84,7 @@ ScreenCapture::ContextData* ScreenCapture::getContextData(osg::GraphicsContext* 
 
 bool InitializeCamera(osgViewer::Viewer *viewer, 
                     osg::ref_ptr<osg::Camera> camera, unsigned int width, unsigned int height, osg::Matrixd intrinsics_matrix) {
+  
   GLenum readBuffer = GL_BACK;
   osg::ref_ptr<osg::GraphicsContext> pbuffer;
 	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
