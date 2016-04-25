@@ -43,6 +43,7 @@ public:
         ContextData(osg::GraphicsContext* gc, GLenum readBuffer, const std::string& name);
         void getSize(osg::GraphicsContext* gc, int& width, int& height);
         void readPixels();
+        osg::Image* getImage();
 
         typedef std::vector< osg::ref_ptr<osg::Image> > ImageBuffer;
 

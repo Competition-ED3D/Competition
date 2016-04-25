@@ -48,17 +48,21 @@ void ScreenCapture::ContextData::readPixels()
     
     cout<<"callback: cols"<<image->s()<<", rows"<<image->t()<<endl;
     cout << "_image indirizzo " << image <<endl;
+    cout << "_imageBuffer[0].get() indirizzo " << _imageBuffer[0].get() <<endl;
+
     
     _fileName = "test_" + std::to_string(_imgCount) + ".png";
-    
-    ImageProcessing(image);
-    
+        
     if (!_fileName.empty())
     {
         osgDB::writeImageFile(*image, _fileName);
     }
 
     _imgCount++;
+}
+
+osg::Image* ScreenCapture::ContextData::getImage() {
+    return _imageBuffer[0].get();
 }
 
 ScreenCapture::ScreenCapture(GLenum readBuffer):
@@ -78,7 +82,6 @@ ScreenCapture::ContextData* ScreenCapture::getContextData(osg::GraphicsContext* 
             OpenThreads::ScopedLock<OpenThreads::Mutex> lock(_mutex);
             osg::ref_ptr<ContextData>& data = _contextDataMap[gc];
             if (!data) data = createContextData(gc);
-            
             return data.get();
         }
 
@@ -87,26 +90,26 @@ bool InitializeCamera(osgViewer::Viewer *viewer,
   
   GLenum readBuffer = GL_BACK;
   osg::ref_ptr<osg::GraphicsContext> pbuffer;
-	osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
-	traits->x = 0;
-	traits->y = 0;
-	traits->width = width;
-	traits->height = height;
-	traits->red = 8;
-	traits->green = 8;
-	traits->blue = 8;
-	traits->alpha = 0;
-	traits->windowDecoration = false;
-	traits->pbuffer = true;
-	traits->doubleBuffer = true;
-	traits->sharedContext = 0;
+  osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+  traits->x = 0;
+  traits->y = 0;
+  traits->width = width;
+  traits->height = height;
+  traits->red = 8;
+  traits->green = 8;
+  traits->blue = 8;
+  traits->alpha = 0;
+  traits->windowDecoration = false;
+  traits->pbuffer = true;
+  traits->doubleBuffer = true;
+  traits->sharedContext = 0;
 
-	pbuffer = osg::GraphicsContext::createGraphicsContext(traits.get());
-	if (!pbuffer.valid())
-	{
+  pbuffer = osg::GraphicsContext::createGraphicsContext(traits.get());
+  if (!pbuffer.valid())
+  {
     osg::notify(osg::NOTICE)<< "Pixel buffer has not been created successfully."<<std::endl;
     return false;
-	}
+  }
   else
   {
     osg::notify(osg::NOTICE)<< "Pixel buffer has been created successfully."<<std::endl;
