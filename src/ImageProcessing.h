@@ -25,9 +25,10 @@ using std::endl;
 using std::vector;
 
 
-int ImageProcessing(osg::Image* source);
-void InsertPoints(vector<Point> intersection_points);
-void BuildPointCloud(vector<Point3f> point_cloud_points);
+int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix);
+void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics);
+void BuildPointCloud(vector<Point3f> point_cloud_points, Mat intrisics);
+void ConvertCoordinates(vector<Point3f> &point_cloud_points, Mat intrinsics);
 
 
 #endif /* IMAGEPROCESSING_H */

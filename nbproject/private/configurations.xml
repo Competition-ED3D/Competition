@@ -17,14 +17,14 @@
           <df name="src">
           </df>
         </df>
-        <df name="Progress">
-        </df>
       </df>
       <df name="data">
       </df>
       <df name="src">
         <in>ImageProcessing.cpp</in>
         <in>ImageProcessing.h</in>
+        <in>Scanner-orig.cpp</in>
+        <in>Scanner-orig.h</in>
         <in>Scanner.cpp</in>
         <in>Scanner.h</in>
         <in>Scanner_orig.cpp</in>

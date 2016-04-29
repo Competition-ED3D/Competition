@@ -176,7 +176,7 @@ int Scanner(InputParameters *input_parameters) {
         
     viewer.frame();
     
-    ImageProcessing(screenshot);
+    ImageProcessing(screenshot, intrinsics_matrix);
     
     /////////////////////////////////////////////////////////
     sleep(2);
