@@ -116,7 +116,8 @@ int Scanner(InputParameters *input_parameters) {
   
   double camera_x = 300;
   double camera_y = 0;
-  double camera_z = -750;
+  //double camera_z = -750;
+  double camera_z = -1000;
 
   //viewer.setCameraManipulator(new osgGA::TrackballManipulator());
 
@@ -137,24 +138,22 @@ int Scanner(InputParameters *input_parameters) {
   //double step_y = 0.1;
   double step_y = scanning_speed/fps;
   
-  std::cout << "Prima del ciclo" << std::endl;
-  //viewer.setThreadingModel(osgViewer::Viewer::SingleThreaded);
   viewer.frame();
   
   ScreenCapture *sc = (ScreenCapture*) camera.get()->getFinalDrawCallback();
   osg::Image *screenshot = (sc->getContextData(camera.get()->getGraphicsContext()))->getImage();
-  cout << "screenshot indirizzo " << screenshot <<endl;
-  
-  for(int k=0; k<15; k++) {
-  //while(!viewer.done()){
-    k=1;
+  vector<Point3f> point_cloud_points;
+  int failed_intersections = 0;
+  for(int k=0; k < 20; k++) {
+  //for(int k=0; failed_intersections < 10; k++) {
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
 
     double laser_distance = 500;
     
     //double laser_incline = 68.1301;
-    double laser_incline = 65;
+    //double laser_incline = 65;
+    double laser_incline = 70;
     //double laser_incline = 50.1301;
     //double laser_aperture = 22.62;
     double laser_aperture = 45;
@@ -162,30 +161,35 @@ int Scanner(InputParameters *input_parameters) {
     osg::Vec3d start_left = osg::Vec3d(-camera_x, laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_left;
 
-    std::cout << "intersezioni sinistra" << std::endl;
+    //std::cout << "intersezioni sinistra" << std::endl;
     ComputeIntersections(start_left, step_x, step_y, threshold, model, laser_incline, laser_aperture, false, &intersections_left);
 
     osg::Vec3d start_right = osg::Vec3d(-camera_x, -laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_right;
 
-    std::cout << "intersezioni destra" << std::endl;
+    //std::cout << "intersezioni destra" << std::endl;
     ComputeIntersections(start_right, step_x, step_y, threshold, model, laser_incline, laser_aperture, true, &intersections_right);
-    
+    cout<<"intersections_left.size() "<<intersections_left.size()<<" intersections_right.size() "<<intersections_right.size()<<endl;
+    //if(intersections_left.size() == 0 && intersections_right.size() == 0 )
+    if(intersections_left.size() == 0 )
+      failed_intersections++;
+    else
+      failed_intersections = 0;
+            
     ShowIntersections (intersections_right, intersection_line_geode);
     ShowIntersections (intersections_left, intersection_line_geode);
         
     viewer.frame();
     
-    ImageProcessing(screenshot, intrinsics_matrix);
-    
+    ImageProcessing(screenshot, intrinsics_matrix, k*step_y, point_cloud_points);
+    cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
     /////////////////////////////////////////////////////////
     sleep(2);
     intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
-    k=15;
     //intersection_line_geode->removeDrawables (1, intersections_right.size());
   }
 
-  
+  BuildPointCloud(point_cloud_points);
 
     
   return 0;
@@ -241,7 +245,7 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
           intersector->getFirstIntersection().localIntersectionPoint) >=
           threshold)) {
           intersections->push_back(vertices);
-          std::cout << "number of points: " << vertices->size() << std::endl;
+          //std::cout << "number of points: " << vertices->size() << std::endl;
           vertices = new osg::Vec3Array();
         }
         vertices->push_back(
@@ -249,7 +253,7 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
       }
     }
     if (vertices->size() != 0) intersections->push_back(vertices);
-    std::cout << "number of points (finale): " << vertices->size() << std::endl;
+    //std::cout << "number of points (finale): " << vertices->size() << std::endl;
 }
 
 void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,

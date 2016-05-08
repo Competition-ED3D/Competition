@@ -12,9 +12,7 @@ ScreenCapture::ContextData::ContextData(osg::GraphicsContext* gc, GLenum readBuf
             {
 
                 getSize(gc, _width, _height);
-                
-                std::cout<<"Window size "<<_width<<", "<<_height<<std::endl;
-                
+                                
                 // single buffered image
                 _imageBuffer.push_back(new osg::Image);
                 
@@ -45,17 +43,12 @@ void ScreenCapture::ContextData::readPixels()
 
     image->readPixels(0,0,_width,_height,
                       _pixelFormat,_type);
-    
-    cout<<"callback: cols"<<image->s()<<", rows"<<image->t()<<endl;
-    cout << "_image indirizzo " << image <<endl;
-    cout << "_imageBuffer[0].get() indirizzo " << _imageBuffer[0].get() <<endl;
-
-    
+      
     _fileName = "test_" + std::to_string(_imgCount) + ".png";
         
     if (!_fileName.empty())
     {
-        osgDB::writeImageFile(*image, _fileName);
+        //osgDB::writeImageFile(*image, _fileName);
     }
 
     _imgCount++;

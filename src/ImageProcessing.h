@@ -25,9 +25,9 @@ using std::endl;
 using std::vector;
 
 
-int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix);
-void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics);
-void BuildPointCloud(vector<Point3f> point_cloud_points, Mat intrisics);
+int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, float y_offset, vector<Point3f>& point_cloud_points);
+void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_offset, vector<Point3f>& point_cloud_points);
+void BuildPointCloud(vector<Point3f> point_cloud_points);
 void ConvertCoordinates(Point3f& point, Mat intrinsics);
 
 

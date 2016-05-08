@@ -1,6 +1,6 @@
 #include "ImageProcessing.h"
 
-int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix) {
+int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, float y_offset, vector<Point3f>& point_cloud_points) {
 
   Mat intrinsics = Mat::eye(3, 3, CV_64F);
   intrinsics.at<double>(0, 0) = intrinsics_matrix(0, 0);
@@ -12,15 +12,16 @@ int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix) {
   Mat image(source->t(), source->s(), CV_8UC3);
   image.data = (uchar*) source->data();
   flip(image, image, 0);
-  int roi_height = 400;
+  //int roi_height = 400;
+  int roi_height = 600;
   int y_start = 100;
   Rect region_of_interest = Rect(0, y_start, image.cols, roi_height);
   Mat image_roi_left = image(region_of_interest);
-  cout << "roi_left size " << image_roi_left.size() << endl;
+  //cout << "roi_left size " << image_roi_left.size() << endl;
   region_of_interest = Rect(0, image.rows - y_start - roi_height, image.cols, roi_height);
   Mat image_roi_right = image(region_of_interest);
-  cout << "roi_right size " << image_roi_right.size() << endl;
-  cout << "image.rows - y_start - roi_height " << image.rows - y_start - roi_height << endl;
+  //cout << "roi_right size " << image_roi_right.size() << endl;
+  //cout << "image.rows - y_start - roi_height " << image.rows - y_start - roi_height << endl;
 
   imwrite("roi_left.png", image_roi_left);
   imwrite("roi_right.png", image_roi_right);
@@ -47,24 +48,29 @@ int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix) {
     }
   }
 
-  InsertPoints(intersection_points, intrinsics);
-
+  InsertPoints(intersection_points, intrinsics, y_offset, point_cloud_points);
   return 0;
 }
 
-void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics) {
-  vector<Point3f> point_cloud_points;
+void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_offset, vector<Point3f>& point_cloud_points) {
   Point3f point;
   Point3f first, second;
   float laser_incline = 65;
   laser_incline = 2 * M_PI * laser_incline / 360;
   if (intersection_points.size() == 0)
     return;
-  float offset = 0;
-  //ConvertCoordinates(intersection_points,intrinsics);
+  //float offset = 0;
+  Point3f off;
+  off.x = intersection_points.at(0).x;
+  off.y = intersection_points.at(0).y;//sob
+  ConvertCoordinates(off, intrinsics);
+  float offset = off.y;
+  cout << "offset iniziale: " << offset << endl;
   for (int i = 0; i < intersection_points.size() - 1; i++) {
     first = intersection_points.at(i);
     second = intersection_points.at(i + 1);
+    first.y = first.y + y_offset;
+    second.y = second.y + y_offset;
     //cout<<"second.y - first.y "<<fabs(second.y-first.y)<<endl;
     float z_coord;
 
@@ -91,12 +97,13 @@ void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics) {
       point.z = offset;
     }
     //cout << "Coordinate punto che sta per essere inserito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
+    cout << "z punto: " << point.z << endl;
     point_cloud_points.push_back(point);
   }
-  BuildPointCloud(point_cloud_points, intrinsics);
+  //BuildPointCloud(point_cloud_points, intrinsics);
 }
 
-void BuildPointCloud(vector<Point3f> point_cloud_points, Mat intrinsics) {
+void BuildPointCloud(vector<Point3f> point_cloud_points) {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr output(
           new pcl::PointCloud<pcl::PointXYZRGB>);
   pcl::PointXYZRGB output_point;
@@ -125,7 +132,10 @@ void BuildPointCloud(vector<Point3f> point_cloud_points, Mat intrinsics) {
     output_point.z = point_cloud_points.at(i).z;
     output->points.push_back(output_point);
   }
-
+  
+  output->width = 1;
+  output->height = output->points.size();
+  
   cout << "Visualization... Press Q to exit." << endl;
   pcl::visualization::PCLVisualizer viewer("Reconstructed scene");
   viewer.setBackgroundColor(0, 0, 0);
@@ -138,6 +148,8 @@ void BuildPointCloud(vector<Point3f> point_cloud_points, Mat intrinsics) {
   viewer.addCoordinateSystem(0.1, "cloud");
   //viewer.initCameraParameters();
   viewer.spin();
+  
+  pcl::io::savePCDFileASCII("output.pcd", *output);
 }
 
 void ConvertCoordinates(Point3f& point, Mat intrinsics) {
