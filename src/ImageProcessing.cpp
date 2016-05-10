@@ -1,5 +1,7 @@
 #include "ImageProcessing.h"
 
+int image_counter = 0;
+
 int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, float y_offset, vector<Point3f>& point_cloud_points) {
 
   Mat intrinsics = Mat::eye(3, 3, CV_64F);
@@ -23,15 +25,18 @@ int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, float y_
   //cout << "roi_right size " << image_roi_right.size() << endl;
   //cout << "image.rows - y_start - roi_height " << image.rows - y_start - roi_height << endl;
 
-  imwrite("roi_left.png", image_roi_left);
-  imwrite("roi_right.png", image_roi_right);
-
+  string name = "roi_left_" + std::to_string(image_counter) + ".png";
+  imwrite(name, image_roi_left);
+  name = "roi_right_" + std::to_string(image_counter) + ".png";
+  imwrite(name, image_roi_right);
+  image_counter++;
+  
   Scalar lbound = Scalar(0, 0, 200);
   Scalar ubound = Scalar(0, 0, 255);
   Mat intersections(2024, 1088, CV_8U);
 
-  inRange(image_roi_left, lbound, ubound, intersections);
-  //inRange(image_roi_right, lbound, ubound, intersections);
+  //inRange(image_roi_left, lbound, ubound, intersections);
+  inRange(image_roi_right, lbound, ubound, intersections);
 
   imwrite("intersections.jpg", intersections);
   vector<cv::Point3f> intersection_points;
@@ -61,14 +66,28 @@ void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_o
     return;
   //float offset = 0;
   Point3f off;
+  
+  Point3f height;
+  height.x = 0;
+  height.y = 300;
+  ConvertCoordinates(height, intrinsics);
+  
   off.x = intersection_points.at(0).x;
-  off.y = intersection_points.at(0).y;//sob
+  off.y = intersection_points.at(0).y;
+  //off.x = intersection_points.at(intersection_points.size() - 1).x;
+  //off.y = intersection_points.at(intersection_points.size() - 1).y;
   ConvertCoordinates(off, intrinsics);
-  float offset = off.y;
+
+  //float offset = off.y;
+  float offset = fabs(height.y - off.y) * tan(laser_incline); //setto l'offset triangolando il punto in
+                                                              //basso a sinistra nella roi con il primo dell'intersezione
+    
   cout << "offset iniziale: " << offset << endl;
   for (int i = 0; i < intersection_points.size() - 1; i++) {
+  //for (int i = intersection_points.size() - 1; i > 0; i--) {
     first = intersection_points.at(i);
     second = intersection_points.at(i + 1);
+    //second = intersection_points.at(i - 1);
     first.y = first.y + y_offset;
     second.y = second.y + y_offset;
     //cout<<"second.y - first.y "<<fabs(second.y-first.y)<<endl;
@@ -97,7 +116,7 @@ void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_o
       point.z = offset;
     }
     //cout << "Coordinate punto che sta per essere inserito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
-    cout << "z punto: " << point.z << endl;
+    //cout << "z punto: " << point.z << endl;
     point_cloud_points.push_back(point);
   }
   //BuildPointCloud(point_cloud_points, intrinsics);

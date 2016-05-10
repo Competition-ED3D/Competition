@@ -115,7 +115,7 @@ int Scanner(InputParameters *input_parameters) {
   viewer.setSceneData(root);
   
   double camera_x = 300;
-  double camera_y = 0;
+  double camera_y = -40; // spostamento verso l'alto
   //double camera_z = -750;
   double camera_z = -1000;
 
