@@ -115,9 +115,9 @@ int Scanner(InputParameters *input_parameters) {
   viewer.setSceneData(root);
   
   double camera_x = 300;
-  double camera_y = -40; // spostamento verso l'alto
+  double camera_y = 130; // spostamento verso l'alto
   //double camera_z = -750;
-  double camera_z = -1000;
+  double camera_z = -900;
 
   //viewer.setCameraManipulator(new osgGA::TrackballManipulator());
 
@@ -144,7 +144,7 @@ int Scanner(InputParameters *input_parameters) {
   osg::Image *screenshot = (sc->getContextData(camera.get()->getGraphicsContext()))->getImage();
   vector<Point3f> point_cloud_points;
   int failed_intersections = 0;
-  for(int k=0; k < 20; k++) {
+  for(int k=0; k < 80; k++) {
   //for(int k=0; failed_intersections < 10; k++) {
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
@@ -168,25 +168,25 @@ int Scanner(InputParameters *input_parameters) {
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_right;
 
     //std::cout << "intersezioni destra" << std::endl;
-    ComputeIntersections(start_right, step_x, step_y, threshold, model, laser_incline, laser_aperture, true, &intersections_right);
-    cout<<"intersections_left.size() "<<intersections_left.size()<<" intersections_right.size() "<<intersections_right.size()<<endl;
+    //ComputeIntersections(start_right, step_x, step_y, threshold, model, laser_incline, laser_aperture, true, &intersections_right);
+    //cout<<"intersections_left.size() "<<intersections_left.size()<<" intersections_right.size() "<<intersections_right.size()<<endl;
     //if(intersections_left.size() == 0 && intersections_right.size() == 0 )
     if(intersections_left.size() == 0 )
       failed_intersections++;
     else
       failed_intersections = 0;
             
-    ShowIntersections (intersections_right, intersection_line_geode);
+    //ShowIntersections (intersections_right, intersection_line_geode);
     ShowIntersections (intersections_left, intersection_line_geode);
         
     viewer.frame();
     
-    ImageProcessing(screenshot, intrinsics_matrix, k*step_y, point_cloud_points);
+    ImageProcessing(screenshot, intrinsics_matrix, k*step_y, laser_incline, point_cloud_points);
     cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
     /////////////////////////////////////////////////////////
     sleep(2);
-    intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
-    //intersection_line_geode->removeDrawables (1, intersections_right.size());
+    //intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
+    intersection_line_geode->removeDrawables (1, intersections_left.size());
   }
 
   BuildPointCloud(point_cloud_points);
