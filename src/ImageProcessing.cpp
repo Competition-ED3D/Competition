@@ -53,8 +53,38 @@ int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, float y_
     }
   }
 
-  InsertPoints(intersection_points, intrinsics, y_offset, laser_incline, point_cloud_points);
+  //InsertPoints(intersection_points, intrinsics, y_offset, laser_incline, point_cloud_points);
+  Prova(intersection_points, intrinsics, y_offset, laser_incline, point_cloud_points);
+
   return 0;
+}
+
+void Prova (vector<Point3f> intersection_points, Mat intrinsics, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points) {
+    float baseline = 500/5.5e-3; //Converto in pixel
+    float focal_length = 25/5.5e-3; //Converto in pixel
+    float pixel_position;
+    float absolute_pixel_position;
+    float alfa = 90-laser_incline;
+    float z_coord;
+    float alfa_rad = 2 * M_PI * alfa / 360;
+    float roi_height = 600;
+    Point3f point;
+    if (intersection_points.size() == 0)
+        return;
+    for (int i = 0; i < intersection_points.size() - 1; i++) {
+        pixel_position = intersection_points.at(i).y;
+        absolute_pixel_position = (roi_height - pixel_position) + (544-roi_height);
+        z_coord = baseline*focal_length/(focal_length*tan(alfa_rad)-pixel_position);
+        z_coord = z_coord*5.5e-3; // converto in mm
+        point.x = intersection_points.at(i).x;
+        point.y = intersection_points.at(i).y;
+        point.z = z_coord;
+        ConvertCoordinates(point, intrinsics);
+        point.y = point.y + y_offset;
+        cout << "Coordinate punto che sta per essere inserito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
+        point_cloud_points.push_back(point);
+    }
+
 }
 
 void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points) {
@@ -71,11 +101,11 @@ void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_o
   Point3f conv;
   conv.x = 0;
   conv.y = 600;
-  ConvertCoordinates(conv, intrinsics);
+  //ConvertCoordinates(conv, intrinsics);
   
   off.x = intersection_points.at(0).x;
   off.y = intersection_points.at(0).y;
-  ConvertCoordinates(off, intrinsics);
+  //ConvertCoordinates(off, intrinsics);
   /*Point3f prova;
   prova.x = 0;
   prova.y = fabs(height.y - off.y);
@@ -84,19 +114,18 @@ void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_o
   float offset = fabs(conv.y - off.y) * tan(laser_incline_rad); //setto l'offset triangolando il punto in
                                                               //basso a sinistra nella roi con il primo dell'intersezione
   //float offset = prova.y * tan(laser_incline_rad);
-  cout << "offset iniziale: " << offset << endl;
+  //cout << "offset iniziale: " << offset << endl;
   for (int i = 0; i < intersection_points.size() - 1; i++) {
     first = intersection_points.at(i);
     second = intersection_points.at(i + 1);
-    first.y = first.y + y_offset;
-    second.y = second.y + y_offset;
-   
+    //cout << "first: (" << first.x << ", " << first.y << ")" << endl;
+    //cout << "second: (" << second.x << ", " << second.y << ")" << endl;
     float z_coord;
     
     if (fabs(second.y - first.y) >= 1) { // sono su righe diverse
       if (fabs(first.x - second.x) <= 1) { // sono su colonne adiacenti
-        ConvertCoordinates(first, intrinsics);
-        ConvertCoordinates(second, intrinsics);
+        //ConvertCoordinates(first, intrinsics);
+        //ConvertCoordinates(second, intrinsics);
         point.x = second.x; // do la coordinata del secondo, first e second sono adiacenti
         point.y = second.y; // la y è uguale sia per first che per second (stessa riga)
         z_coord = fabs(first.y - second.y) * tan(laser_incline_rad);
@@ -108,21 +137,26 @@ void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_o
           point.z = offset - z_coord;
           offset = offset - z_coord;
         }
+      } else { // sono su righe diverse ma colonne non adiacenti
+      continue;
       }
     } else if (z_coord != 0) { // sono sulla stessa riga 
-      ConvertCoordinates(first, intrinsics);
-      ConvertCoordinates(second, intrinsics);
+      //ConvertCoordinates(first, intrinsics);
+      //ConvertCoordinates(second, intrinsics);
       point.x = second.x; // do la coordinata del secondo, first e second sono adiacenti
       point.y = second.y; // la y è uguale sia per first che per second (stessa riga)
       point.z = offset;
     } else {// se i primi due punti della roi sono sulla stessa riga non ho informazioni sull'altezza per nessuno dei
             // dei due, non posso inserirli
-        continue;
+      continue;
     }
-    //point.z = point.z*5.5e-3;
-    //ConvertCoordinates(point, intrinsics);
-    //y_offset = y_offset/950;
-    //point.y = point.y + y_offset;
+    point.z = point.z*5.5e-3;
+    ConvertCoordinates(point, intrinsics);
+    //cout << "point.y: " << point.y << endl;
+    point.y = point.y + (y_offset/11.0);
+    //cout << "y_offset dopo: " << y_offset/11.0 << endl;
+    //cout << "point.y - dopo: " << point.y << endl;
+    
     cout << "Coordinate punto che sta per essere inserito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
     //cout << "z punto: " << point.z << endl;
     point_cloud_points.push_back(point);
@@ -171,7 +205,7 @@ void BuildPointCloud(vector<Point3f> point_cloud_points) {
           piano);
   viewer.addPointCloud<pcl::PointXYZRGB> (output, rgb, "cloud");
   //viewer.addPointCloud<pcl::PointXYZRGB> (piano, rgb2, "piano");
-  viewer.addCoordinateSystem(0.1, "cloud");
+  viewer.addCoordinateSystem(100.0, "cloud");
   //viewer.initCameraParameters();
   viewer.spin();
   
@@ -179,9 +213,21 @@ void BuildPointCloud(vector<Point3f> point_cloud_points) {
 }
 
 void ConvertCoordinates(Point3f& point, Mat intrinsics) {
-  double point_coord[] = {point.x, point.y, 1};
+  double point_coord[] = {point.x, point.y, point.z};
+  //double point_coord[] = {x, y, point.z};
+  //Mat converted_point = Mat(3, 1, CV_64F, point_coord);
+  //Mat inverted_intrinsics = intrinsics.inv();
+  
+  double cx = intrinsics.at<double>(2, 0);
+  double cy = intrinsics.at<double>(2, 1);
+  double fx = intrinsics.at<double>(0, 0);
+  double fy = intrinsics.at<double>(1, 1);
+  
+  point.x = (point.x - cx) * point.z / fx;
+  point.y = (point.y - cy) * point.z / fy;
+  
+  //double point_coord[] = {point.x - cx, point.y - cy, fx};
   Mat converted_point = Mat(3, 1, CV_64F, point_coord);
-  Mat inverted_intrinsics = intrinsics.inv();
   /*for(int i=0;i<inverted_intrinsics.rows;i++)
       for(int j=0;j<inverted_intrinsics.cols;j++)
           cout<<"mat("<<i<<")("<<j<<"): "<<inverted_intrinsics.at<double>(i,j)<<endl;*/
@@ -190,10 +236,13 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics) {
   cout<<"conv_point(1)(0)"<<converted_point.at<double>(1,0)<<endl;
   cout<<"conv_point(2)(0)"<<converted_point.at<double>(2,0)<<endl;*/
 
-  Mat out = inverted_intrinsics * converted_point;
-  point.x = out.at<double>(0, 0);
-  point.y = out.at<double>(0, 1);
-  point.z = out.at<double>(0, 2);
+  //Mat out = inverted_intrinsics * converted_point;
+  
+  //out = extrinsics.inv() * out;
+  
+  /*point.x = out.at<double>(0, 0)/point.z;
+  point.y = out.at<double>(0, 1)/point.z;
+  point.z = out.at<double>(0, 2)/point.z;*/
   //cout<<"point x y z dopo "<<point.x<<" "<<point.y<<" "<<point.z<<endl;
   //  getchar();
 

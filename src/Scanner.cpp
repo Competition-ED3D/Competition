@@ -115,7 +115,7 @@ int Scanner(InputParameters *input_parameters) {
   viewer.setSceneData(root);
   
   double camera_x = 300;
-  double camera_y = 130; // spostamento verso l'alto
+  double camera_y = 340; // spostamento verso l'alto
   //double camera_z = -750;
   double camera_z = -900;
 
@@ -144,8 +144,9 @@ int Scanner(InputParameters *input_parameters) {
   osg::Image *screenshot = (sc->getContextData(camera.get()->getGraphicsContext()))->getImage();
   vector<Point3f> point_cloud_points;
   int failed_intersections = 0;
-  for(int k=0; k < 80; k++) {
-  //for(int k=0; failed_intersections < 10; k++) {
+  //for(int k=0; k < 80; k++) {   
+  for(int k=0; failed_intersections < 10; k++) {
+    cout << "K: " << k << endl;
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
 
