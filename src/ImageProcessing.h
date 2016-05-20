@@ -15,8 +15,6 @@
 #include <pcl/point_types.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
-
-
 using namespace cv;
 
 using std::string;
@@ -24,13 +22,12 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-
-int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points);
-void Prova (vector<Point3f> intersection_points, Mat intrinsics, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points);
+int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, struct InputParameters *input_parameters, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points);
+void LoadIntersectionPoints(Mat intersections, vector<Point3f>& intersection_points);
+void Prova (vector<Point3f> intersection_points, Mat intrinsics, struct InputParameters *input_parameters, float y_offset, float laser_incline, int y_start, bool roi, vector<Point3f>& point_cloud_points);
 void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points);
 void BuildPointCloud(vector<Point3f> point_cloud_points);
 void ConvertCoordinates(Point3f& point, Mat intrinsics);
-
 
 #endif /* IMAGEPROCESSING_H */
 
