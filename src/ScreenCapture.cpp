@@ -79,7 +79,7 @@ ScreenCapture::ContextData* ScreenCapture::getContextData(osg::GraphicsContext* 
         }
 
 bool InitializeCamera(osgViewer::Viewer *viewer, 
-                    osg::ref_ptr<osg::Camera> camera, unsigned int width, unsigned int height, osg::Matrixd intrinsics_matrix) {
+                    osg::ref_ptr<osg::Camera> camera, unsigned int width, unsigned int height, osg::Matrixf intrinsics_matrix) {
   
   GLenum readBuffer = GL_BACK;
   osg::ref_ptr<osg::GraphicsContext> pbuffer;

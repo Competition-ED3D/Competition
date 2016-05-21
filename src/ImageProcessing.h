@@ -10,6 +10,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <osg/Image>
+#include <osg/Matrixf>
 
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
@@ -22,10 +23,9 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-int ImageProcessing(osg::Image* source, osg::Matrixd intrinsics_matrix, struct InputParameters *input_parameters, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points);
+int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix, struct InputParameters *input_parameters, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points);
 void LoadIntersectionPoints(Mat intersections, vector<Point3f>& intersection_points);
-void Prova (vector<Point3f> intersection_points, Mat intrinsics, struct InputParameters *input_parameters, float y_offset, float laser_incline, int y_start, bool roi, vector<Point3f>& point_cloud_points);
-void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics, float y_offset, float laser_incline, vector<Point3f>& point_cloud_points);
+void InsertPoints (vector<Point3f> intersection_points, Mat intrinsics, struct InputParameters *input_parameters, float y_offset, float laser_incline, int y_start, bool roi, vector<Point3f>& point_cloud_points);
 void BuildPointCloud(vector<Point3f> point_cloud_points);
 void ConvertCoordinates(Point3f& point, Mat intrinsics);
 

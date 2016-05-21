@@ -41,7 +41,7 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
                           std::vector<osg::ref_ptr<osg::Vec3Array> > *intersections);
 void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
                         osg::Geode* intersection_line_geode);
-bool IntrinsicsParser(std::string filename, osg::Matrixd &intrinsics_matrix, std::vector<double> &distortion_matrix);
+bool IntrinsicsParser(std::string filename, osg::Matrixf &intrinsics_matrix, std::vector<double> &distortion_matrix);
 
 struct MyReadCallback : public osgUtil::IntersectionVisitor::ReadCallback {
   virtual osg::Node* readNodeFile(const std::string& filename) {

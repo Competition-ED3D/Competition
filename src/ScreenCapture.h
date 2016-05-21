@@ -85,7 +85,7 @@ public:
 };
 
 bool InitializeCamera(osgViewer::Viewer *viewer, osg::ref_ptr<osg::Camera> camera,
-        unsigned int width, unsigned int height, osg::Matrixd intrinsics_matrix);
+        unsigned int width, unsigned int height, osg::Matrixf intrinsics_matrix);
 
 #endif /* SCREENCAPTURE_H */
 
