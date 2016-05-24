@@ -92,6 +92,7 @@ int Scanner(InputParameters *input_parameters) {
   //////////////////////////////////////////////////////////////////////////////
 
   root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+  model->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON);
   osgViewer::Viewer viewer;
   
   unsigned int width=2024;
@@ -119,12 +120,12 @@ int Scanner(InputParameters *input_parameters) {
   
   //float camera_x = 300; //valore usato prima di introdurre posInWorld
   float camera_x = -posInWorld[0] + 0;
-  //double camera_y = 340; // spostamento verso l'alto
+  //double camera_y = 340; // positivo: spostamento verso l'alto
   //float camera_y = 0; //valore usato prima di introdurre posInWorld
-  float camera_y = -posInWorld[1] + 200;
-  //double camera_z = -750;
+  float camera_y = -posInWorld[1] + 225;
+  //double camera_z = -750; // negativo: "alzare" la telecamera
   //double camera_z = -900; //valore usato prima di introdurre posInWorld
-  float camera_z = posInWorld[2] + -900;
+  float camera_z = posInWorld[2] + -1300;
   cout<<"camera_x "<<camera_x<<" "<<"camera_y "<<camera_y<<" "<<"camera_z "<<camera_z<<endl;
   
   cameraTrans.makeTranslate(camera_x, camera_y, camera_z );
@@ -134,7 +135,7 @@ int Scanner(InputParameters *input_parameters) {
   
   viewer.addSlave(camera.get(), osg::Matrixd(), osg::Matrixd());
     
-  double scanning_speed = 100;
+  double scanning_speed = 800;
   double fps = 100;
   
   //double step_x = 0.02;
@@ -150,8 +151,8 @@ int Scanner(InputParameters *input_parameters) {
   osg::Image *screenshot = (sc->getContextData(camera.get()->getGraphicsContext()))->getImage();
   vector<Point3f> point_cloud_points;
   int failed_intersections = 0;
-  for(int k=0; k < 20; k++) {   
-  //for(int k=0; failed_intersections < 10; k++) {
+  //for(int k=0; k < 200; k++) {   
+  for(int k=0; failed_intersections < 10; k++) {
     cout << "K: " << k << endl;
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
@@ -174,29 +175,28 @@ int Scanner(InputParameters *input_parameters) {
     osg::Vec3d start_right = osg::Vec3d(-camera_x, -laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_right;
 
-    std::cout << "intersezioni destra" << std::endl;
-    //ComputeIntersections(start_right, step_x, step_y, threshold, model, laser_incline, laser_aperture, true, &intersections_right);
+    //std::cout << "intersezioni destra" << std::endl;
+    ComputeIntersections(start_right, step_x, step_y, threshold, model, laser_incline, laser_aperture, true, &intersections_right);
     //cout<<"intersections_left.size() "<<intersections_right.size()<<" intersections_right.size() "<<intersections_right.size()<<endl;
     
-    //if(intersections_left.size() == 0 && intersections_right.size() == 0 )
-    if(intersections_left.size() == 0 )
+    if(intersections_left.size() == 0 && intersections_right.size() == 0 )
+    //if(intersections_left.size() == 0 )
     //if(intersections_right.size() == 0 )
       failed_intersections++;
     else
       failed_intersections = 0;
             
     ShowIntersections (intersections_left, intersection_line_geode);
-    //ShowIntersections (intersections_right, intersection_line_geode);   
+    ShowIntersections (intersections_right, intersection_line_geode);   
     
     viewer.frame();
     
-    //ImageProcessing(screenshot, intrinsics_matrix, input_parameters, k*step_y, laser_incline, point_cloud_points);
     ImageProcessing(screenshot, intrinsics_matrix, input_parameters, k*step_y, laser_incline, point_cloud_points);
     cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
     /////////////////////////////////////////////////////////
     sleep(2);
-    //intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
-    intersection_line_geode->removeDrawables (1, intersections_left.size());
+    intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
+    //intersection_line_geode->removeDrawables (1, intersections_left.size());
     //intersection_line_geode->removeDrawables (1, intersections_right.size());
   }
 
@@ -275,7 +275,7 @@ void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections
         //line->setColorArray(intersection_line_color);
         osg::Vec4Array* intersections_line_color = new osg::Vec4Array;
         for(int j = 0; j<intersections.at(i)->size(); j++){
-          intersections_line_color->push_back(osg::Vec4(1,0,0,1));
+          intersections_line_color->push_back(osg::Vec4(1,1,1,1));
         }
         line->setColorArray(intersections_line_color);
         line->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
