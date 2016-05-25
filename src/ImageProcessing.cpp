@@ -162,15 +162,39 @@ void BuildPointCloud(vector<Point3f> point_cloud_points) {
 }
 
 void ConvertCoordinates(Point3f& point, Mat intrinsics) {
-    float point_coord[] = {point.x*point.z, point.y*point.z, point.z};
+    //float point_coord[] = {point.x*point.z, point.y*point.z, point.z};
+    float point_coord[] = {point.x, point.y, 1};
+    float camera_coord[] = {306.998, 266.1, -1519.47};
+    //camera_x 306.998 camera_y 236.1 camera_z -1519.47
+    float z = point.z;
+    float lambda = z - (-1519.47);
     
     Mat converted_point = Mat(3, 1, CV_32F, point_coord);
+    Mat camera_center = Mat(3, 1, CV_32F, camera_coord);
     Mat inverted_intrinsics = intrinsics.inv();
 
-    Mat out = inverted_intrinsics * converted_point;
+    //Mat out = lambda*inverted_intrinsics * converted_point;
+    Mat out = lambda*inverted_intrinsics * converted_point + camera_center;
+    //Mat out = inverted_intrinsics * converted_point;
     point.x = out.at<float>(0, 0);
     point.y = out.at<float>(0, 1);
-    point.z = out.at<float>(0, 2);
-    //cout<<"point x y z dopo "<<point.x<<" "<<point.y<<" "<<point.z<<endl;
+    //point.z = out.at<float>(0, 2);
+    //point.z = point.z/lambda;
+    //double point_coord[] = {x, y, point.z};
+    //Mat converted_point = Mat(3, 1, CV_64F, point_coord);
+    //Mat inverted_intrinsics = intrinsics.inv();
+
+    //double cx = intrinsics.at<double>(2, 0);
+    //double cy = intrinsics.at<double>(2, 1);
+    /*float cx = intrinsics.at<float>(0, 2);
+    float cy = intrinsics.at<float>(1, 2);
+    
+    float fx = intrinsics.at<float>(0, 0);
+    float fy = intrinsics.at<float>(1, 1);
+    point.x = (point.x*point.z - cx * point.z) / fx;
+    point.y = (point.y*point.z - cy * point.z) / fy;*/
+    cout<<"lambda "<<lambda<<endl;
+    cout<<"point x y z dopo "<<point.x<<" "<<point.y<<" "<<point.z<<endl;
     //  getchar();*/
+
 }

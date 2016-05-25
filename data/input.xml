@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <opencv_storage>
 	<model_filename>"data/prodotto.stl"</model_filename>
-	<scanning_speed>300</scanning_speed>
+	<scanning_speed>800</scanning_speed>
 	<fps>100</fps>
 	<intrinsics_filename>"data/camera.xml"</intrinsics_filename>
 	<x_camera_coord>0</x_camera_coord>
