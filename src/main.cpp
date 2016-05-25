@@ -1,6 +1,5 @@
 #include "Scanner.h"
 
-
 bool InputParser(string filename, InputParameters *input_parameters) {
   cv::FileStorage fs(filename, cv::FileStorage::READ);
 
@@ -60,8 +59,6 @@ int main(int argc, char *argv[]) {
   }
  
   Scanner(input_parameters);
-  //ImageProcessing("roi_left.png");
-  
   
   return 0;
 }

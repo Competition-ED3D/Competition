@@ -49,8 +49,6 @@ public:
 
         osg::GraphicsContext* _gc;
         GLenum _readBuffer;
-        std::string _fileName;
-
         GLenum _pixelFormat;
         GLenum _type;
         int _width;
@@ -84,7 +82,7 @@ public:
     
 };
 
-bool InitializeCamera(osgViewer::Viewer *viewer, osg::ref_ptr<osg::Camera> camera,
+bool InitializeCamera(osg::ref_ptr<osg::Camera> camera,
         unsigned int width, unsigned int height, osg::Matrixf intrinsics_matrix);
 
 #endif /* SCREENCAPTURE_H */

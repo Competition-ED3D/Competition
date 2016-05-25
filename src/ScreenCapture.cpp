@@ -3,7 +3,6 @@
 ScreenCapture::ContextData::ContextData(osg::GraphicsContext* gc, GLenum readBuffer, const std::string& name):
                 _gc(gc),
                 _readBuffer(readBuffer),
-                _fileName(name),
                 _pixelFormat(GL_BGR),
                 _type(GL_UNSIGNED_BYTE),
                 _width(0),
@@ -44,13 +43,6 @@ void ScreenCapture::ContextData::readPixels()
     image->readPixels(0,0,_width,_height,
                       _pixelFormat,_type);
       
-    _fileName = "test_" + std::to_string(_imgCount) + ".png";
-        
-    if (!_fileName.empty())
-    {
-        //osgDB::writeImageFile(*image, _fileName);
-    }
-
     _imgCount++;
 }
 
@@ -78,9 +70,7 @@ ScreenCapture::ContextData* ScreenCapture::getContextData(osg::GraphicsContext* 
             return data.get();
         }
 
-bool InitializeCamera(osgViewer::Viewer *viewer, 
-                    osg::ref_ptr<osg::Camera> camera, unsigned int width, unsigned int height, osg::Matrixf intrinsics_matrix) {
-  
+bool InitializeCamera(osg::ref_ptr<osg::Camera> camera, unsigned int width, unsigned int height, osg::Matrixf intrinsics_matrix) {
   GLenum readBuffer = GL_BACK;
   osg::ref_ptr<osg::GraphicsContext> pbuffer;
   osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
@@ -114,7 +104,7 @@ bool InitializeCamera(osgViewer::Viewer *viewer,
   camera->setDrawBuffer(buffer);
   camera->setReadBuffer(buffer);
   camera->setFinalDrawCallback(new ScreenCapture(readBuffer));
-  //camera->setProjectionMatrix(intrinsics_matrix);
+  camera->setProjectionMatrix(intrinsics_matrix);
   
   pbuffer->realize();
   

@@ -11,35 +11,33 @@
 struct InputParameters {
   string model_filename;
     
-  double scanning_speed;
-  double fps;
+  float scanning_speed;
+  float fps;
   
   string intrinsics_filename;
   
-  double x_camera_coord;
-  double y_camera_coord;
-  double z_camera_coord;
+  float x_camera_coord;
+  float y_camera_coord;
+  float z_camera_coord;
   
-  double camera_width;
-  double camera_height;
-  double pixel_size;
-  double focal_length;
+  int camera_width;
+  int camera_height;
+  float pixel_size;
+  float focal_length;
   
-  double roi_height;
-  double left_roi_start;
-  double right_roi_start;
+  float roi_height;
+  float left_roi_start;
+  float right_roi_start;
   
-  double laser_distance;
-  double laser_incline;
-  double laser_aperture;
+  float laser_distance;
+  float laser_incline;
+  float laser_aperture;
 };
 
-double EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2);
-bool nomeTantoCarino(osgViewer::Viewer *viewer, osg::ref_ptr<osg::GraphicsContext> pbuffer, 
-                     osg::ref_ptr<osg::Camera> camera, unsigned int width, unsigned int height);
+float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2);
 int Scanner(InputParameters *input_parameters);
-void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double threshold,
-                          osg::Node* model, double laser_incline, double laser_aperture, bool side,
+void ComputeIntersections(osg::Vec3d start, float step_x, float step_y, float threshold,
+                          osg::Node* model, float laser_incline, float laser_aperture, bool side,
                           std::vector<osg::ref_ptr<osg::Vec3Array> > *intersections);
 void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
                         osg::Geode* intersection_line_geode);

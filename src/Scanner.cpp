@@ -1,6 +1,6 @@
 #include "Scanner.h"
 
-double EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
+float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
   return sqrt(pow(point1.x() - point2.x(), 2) +
               pow(point1.y() - point2.y(), 2) +
               pow(point1.z() - point2.z(), 2));
@@ -12,7 +12,7 @@ int Scanner(InputParameters *input_parameters) {
   osg::Geode* intersection_line_geode = new osg::Geode();
   osg::Node* model = NULL;
 
-  model = osgDB::readNodeFile("data/prodotto.stl");
+  model = osgDB::readNodeFile(input_parameters->model_filename);
 
   intersection_line_geode->addDrawable(intersection_line_geometry);
 
@@ -32,15 +32,16 @@ int Scanner(InputParameters *input_parameters) {
   model->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON);
   osgViewer::Viewer viewer;
   
-  unsigned int width=2024;
-  unsigned int height=1088;
+  unsigned int width= input_parameters->camera_width;
+  unsigned int height = input_parameters->camera_height;
   osg::ref_ptr<osg::Camera> camera = new osg::Camera;
   
   osg::Matrixf intrinsics_matrix;
   std::vector<double> distortion_matrix;  
-  IntrinsicsParser("data/camera.xml", intrinsics_matrix, distortion_matrix);
+  string filename = input_parameters->intrinsics_filename;
+  IntrinsicsParser(filename, intrinsics_matrix, distortion_matrix);
 
-  InitializeCamera(&viewer, camera, width, height, intrinsics_matrix);
+  InitializeCamera(camera, width, height, intrinsics_matrix);
   
   osg::Matrixd cameraTrans;
 
@@ -51,13 +52,13 @@ int Scanner(InputParameters *input_parameters) {
   cout<<"posInWorld: "<<posInWorld[0]<<" "<<posInWorld[1]<<" "<<posInWorld[2]<<endl;
   
   //float camera_x = 300; //valore usato prima di introdurre posInWorld
-  float camera_x = -posInWorld[0] + 0;
+  float camera_x = -posInWorld[0] + input_parameters->x_camera_coord;
   //double camera_y = 340; // positivo: spostamento verso l'alto
   //float camera_y = 0; //valore usato prima di introdurre posInWorld
-  float camera_y = -posInWorld[1] + 225;
+  float camera_y = -posInWorld[1] + input_parameters->y_camera_coord;
   //double camera_z = -750; // negativo: "alzare" la telecamera
   //double camera_z = -900; //valore usato prima di introdurre posInWorld
-  float camera_z = posInWorld[2] + -1300;
+  float camera_z = posInWorld[2] + input_parameters->z_camera_coord;
   cout<<"camera_x "<<camera_x<<" "<<"camera_y "<<camera_y<<" "<<"camera_z "<<camera_z<<endl;
   
   cameraTrans.makeTranslate(camera_x, camera_y, camera_z );
@@ -67,14 +68,14 @@ int Scanner(InputParameters *input_parameters) {
   
   viewer.addSlave(camera.get(), osg::Matrixd(), osg::Matrixd());
     
-  double scanning_speed = 800;
-  double fps = 100;
+  float scanning_speed = input_parameters->scanning_speed;
+  float fps = input_parameters->fps;
   
   //double step_x = 0.02;
-  double step_x = 1;
-  double threshold = EuclideanDistance(osg::Vec3d(0,0,0),osg::Vec3d(step_x,step_x,step_x));
+  float step_x = 1;
+  float threshold = EuclideanDistance(osg::Vec3d(0,0,0),osg::Vec3d(step_x,step_x,step_x));
   //double step_y = 0.1;
-  double step_y = scanning_speed/fps;
+  float step_y = scanning_speed/fps;
   
   viewer.frame();
   
@@ -88,13 +89,13 @@ int Scanner(InputParameters *input_parameters) {
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
 
-    double laser_distance = 500;    
+    float laser_distance = input_parameters->laser_distance;    
     //double laser_incline = 68.1301;
     //double laser_incline = 65;
-    double laser_incline = 70;
+    float laser_incline = input_parameters->laser_incline;
     //double laser_incline = 50.1301;
     //double laser_aperture = 22.62;
-    double laser_aperture = 45;
+    float laser_aperture = input_parameters->laser_aperture;
     
     osg::Vec3d start_left = osg::Vec3d(-camera_x, laser_distance + k * step_y-camera_y, -camera_z);
     std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_left;
@@ -121,7 +122,7 @@ int Scanner(InputParameters *input_parameters) {
     
     viewer.frame();
     
-    ImageProcessing(screenshot, intrinsics_matrix, input_parameters, k*step_y, laser_incline, point_cloud_points);
+    ImageProcessing(screenshot, intrinsics_matrix, input_parameters, k*step_y, point_cloud_points);
     cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
     intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
     //intersection_line_geode->removeDrawables (1, intersections_left.size());
@@ -133,23 +134,23 @@ int Scanner(InputParameters *input_parameters) {
   return 0;
 }
 
-void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double threshold,
-                          osg::Node* model, double laser_incline, double laser_aperture, bool side,
+void ComputeIntersections(osg::Vec3d start, float step_x, float step_y, float threshold,
+                          osg::Node* model, float laser_incline, float laser_aperture, bool side,
                           std::vector<osg::ref_ptr<osg::Vec3Array> > *intersections) {
     osg::ref_ptr<osg::Vec3Array> vertices(new osg::Vec3Array());   
     laser_incline = 2*M_PI*laser_incline/360;
     laser_aperture = 2*M_PI*laser_aperture/360;    
     
-    double laser_height = EuclideanDistance(osg::Vec3d(start.x(),start.y(),-1000),start);
-    double laser_length = laser_height/cos(M_PI/2-laser_incline);
-    double laser_width_half = tan(laser_aperture/2)*laser_length;
+    float laser_height = EuclideanDistance(osg::Vec3d(start.x(),start.y(),-1000),start);
+    float laser_length = laser_height/cos(M_PI/2-laser_incline);
+    float laser_width_half = tan(laser_aperture/2)*laser_length;
     
-    double end_x_coord = start.x();
-    double end_y_coord = laser_length*sin(M_PI/2-laser_incline); //coordinata y
-    double end_z_coord = -1000;
+    float end_x_coord = start.x();
+    float end_y_coord = laser_length*sin(M_PI/2-laser_incline); //coordinata y
+    float end_z_coord = -1000;
     
-    double x_start = start.x() + laser_width_half;
-    double x_end = start.x() - laser_width_half;
+    float x_start = start.x() + laser_width_half;
+    float x_end = start.x() - laser_width_half;
     
     if(start.y() < end_y_coord){
       end_y_coord = - end_y_coord;
@@ -158,20 +159,10 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
     for (int i = 0; i < (abs(x_end - x_start) / step_x); i++) {
       osg::Vec3d end;
       if(side) {//destra 
-          //end = osg::Vec3d(x_start + i * step_x, -10+16.5, -10);
         end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start)/2 , -end_y_coord+start.y(), end_z_coord);
-        /*std::cout << "x_start: " << x_start << std::endl;
-        std::cout << "y_start: " << start.y()<< std::endl;
-        std::cout << "x_end right: " << end_x_coord + abs(x_end - x_start)/2 << std::endl; 
-        std::cout << "y_end right: " << end_y_coord << std::endl;*/
       }
       else {//sinistra
-          //end = osg::Vec3d(x_start + i * step_x, -10, -10);
         end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start)/2, end_y_coord + start.y(), end_z_coord);
-        /*std::cout << "x_start: " << x_start << std::end_x_coord + i * step_x + abs(x_end - x_start)/2ndl;
-        std::cout << "y_start: " << start.y() << std::endl;
-        std::cout << "x_end left: " << end_x_coord + abs(x_end - x_start)/2 << std::endl; 
-        std::cout << "y_end left: " << end_y_coord + start.y() << std::endl;*/
       }
       osg::ref_ptr<osgUtil::LineSegmentIntersector> intersector =
           new osgUtil::LineSegmentIntersector(start, end);
@@ -183,7 +174,6 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
           intersector->getFirstIntersection().localIntersectionPoint) >=
           threshold)) {
           intersections->push_back(vertices);
-          //std::cout << "number of points: " << vertices->size() << std::endl;
           vertices = new osg::Vec3Array();
         }
         vertices->push_back(
@@ -191,7 +181,6 @@ void ComputeIntersections(osg::Vec3d start, double step_x, double step_y, double
       }
     }
     if (vertices->size() != 0) intersections->push_back(vertices);
-    //std::cout << "number of points (finale): " << vertices->size() << std::endl;
 }
 
 void ShowIntersections (std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
@@ -240,4 +229,3 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf &intrinsics_matrix, std
   
   return true;
 }
-
