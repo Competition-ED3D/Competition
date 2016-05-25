@@ -10,7 +10,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
   }
 
   // Terminate execution if any of the needed information is missing
-  if (fs["scanning_speed"].empty() || fs["fps"].empty() || fs["intrinsics_filename"].empty()
+  if (fs["model_filename"].empty() || fs["scanning_speed"].empty() || fs["fps"].empty() || fs["intrinsics_filename"].empty()
           || fs["x_camera_coord"].empty() || fs["y_camera_coord"].empty() || fs["z_camera_coord"].empty()
           || fs["camera_width"].empty() || fs["camera_height"].empty() || fs["pixel_size"].empty()
           || fs["focal_length"].empty() || fs["roi_height"].empty() || fs["left_roi_start"].empty()
@@ -21,7 +21,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
     return false;
   }
 
-  if (fs["scanning_speed"].isNone() || fs["fps"].isNone() || fs["intrinsics_filename"].isNone()
+  if (fs["model_filename"].isNone() || fs["scanning_speed"].isNone() || fs["fps"].isNone() || fs["intrinsics_filename"].isNone()
           || fs["x_camera_coord"].isNone() || fs["y_camera_coord"].isNone() || fs["z_camera_coord"].isNone()
           || fs["camera_width"].isNone() || fs["camera_height"].isNone() || fs["pixel_size"].isNone()
           || fs["focal_length"].isNone() || fs["roi_height"].isNone() || fs["left_roi_start"].isNone()
@@ -31,7 +31,8 @@ bool InputParser(string filename, InputParameters *input_parameters) {
     fs.release();
     return false;
   }
-
+    
+  fs["model_filename"] >> input_parameters->model_filename;
   fs["scanning_speed"] >> input_parameters->scanning_speed;
   fs["fps"] >> input_parameters->fps;
   fs["intrinsics_filename"] >> input_parameters->intrinsics_filename;
@@ -53,10 +54,11 @@ bool InputParser(string filename, InputParameters *input_parameters) {
 }
 
 int main(int argc, char *argv[]) {
-  struct InputParameters *input_parameters;
+  struct InputParameters *input_parameters = new InputParameters();
   if(!InputParser(argv[1], input_parameters)){
     cout<<"Error in input file"<<endl;
   }
+ 
   Scanner(input_parameters);
   //ImageProcessing("roi_left.png");
   

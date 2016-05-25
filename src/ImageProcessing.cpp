@@ -109,20 +109,18 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics, struc
             relative_pixel_position = absolute_pixel_position - 544;
         }
         point.x = intersection_points.at(i).x;
-        //point.y = absolute_pixel_position - (y_offset/5.5e-3);
         point.y = absolute_pixel_position;
+        //point.y = intersection_points.at(i).y;
         //point.y = relative_pixel_position;
-        //if(roi)
+        //if(roi) //:ok_emoji:
         //    point.y = -point.y;
         z_coord = baseline * focal_length / (focal_length * tan(alfa_rad) - relative_pixel_position);
         z_coord = z_coord * 5.5e-3; // converto in mm
-        //point.y = intersection_points.at(i).y;
         point.z = z_coord;
         //cout << "Coordinate punto che sta per essere convertito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
         ConvertCoordinates(point, intrinsics);
-        //if(roi) // left
-        point.y = point.y - y_offset*0.5;
-        //point.y = point.y - y_offset;
+        //point.y = point.y - y_offset*0.5;
+        point.y = point.y - y_offset;
         //cout<<"y_offset "<<y_offset<<endl;
         //else
         //    point.y = point.y + 2*baseline*5.5e-3+y_offset;
@@ -130,7 +128,6 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics, struc
         //cout << "Coordinate punto che sta per essere inserito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
         point_cloud_points.push_back(point);
     }
-
 }
 
 void BuildPointCloud(vector<Point3f> point_cloud_points) {

@@ -23,11 +23,8 @@
       <df name="src">
         <in>ImageProcessing.cpp</in>
         <in>ImageProcessing.h</in>
-        <in>Scanner-orig.cpp</in>
-        <in>Scanner-orig.h</in>
         <in>Scanner.cpp</in>
         <in>Scanner.h</in>
-        <in>Scanner_orig.cpp</in>
         <in>ScreenCapture.cpp</in>
         <in>ScreenCapture.h</in>
         <in>main.cpp</in>

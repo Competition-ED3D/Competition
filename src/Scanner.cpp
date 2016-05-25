@@ -1,7 +1,5 @@
 #include "Scanner.h"
 
-
-
 double EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
   return sqrt(pow(point1.x() - point2.x(), 2) +
               pow(point1.y() - point2.y(), 2) +
@@ -10,69 +8,16 @@ double EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
 
 int Scanner(InputParameters *input_parameters) {
   osg::Group* root = new osg::Group();
-  osg::Geode* plane_geode = new osg::Geode();
-  osg::Geometry* plane_left = new osg::Geometry();
-  osg::Geometry* plane_right = new osg::Geometry();
   osg::Geometry* intersection_line_geometry = new osg::Geometry();
   osg::Geode* intersection_line_geode = new osg::Geode();
   osg::Node* model = NULL;
 
   model = osgDB::readNodeFile("data/prodotto.stl");
 
-  plane_geode->addDrawable(plane_left);
-  plane_geode->addDrawable(plane_right);
   intersection_line_geode->addDrawable(intersection_line_geometry);
 
   root->addChild(intersection_line_geode);
   root->addChild(model);
-
-  osg::Vec4Array* planes_color = new osg::Vec4Array;
-  planes_color->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 0.2f));  // index 0 red
-  planes_color->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 0.2f));  // index 1 green
-  planes_color->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 0.2f));  // index 2 blue
-  planes_color->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 0.2f));  // index 3 white
-  planes_color->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 0.2f));  // index 4 red
-
-  plane_left->setColorArray(planes_color);
-  plane_left->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
-
-  /*osg::Vec4Array* intersection_line_color = new osg::Vec4Array;
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 0 red
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 1 green
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 2 blue
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 3 white
-  intersection_line_color->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));  // index 4 red
-
-  plane_right->setColorArray(intersection_line_color);
-  plane_right->setColorBinding(osg::Geometry::BIND_PER_VERTEX);*/
-  
-/*
-  osg::Vec3Array* planeVertices1 = new osg::Vec3Array;
-  planeVertices1->push_back(osg::Vec3(5, 6.5, 10));       // front left
-  planeVertices1->push_back(osg::Vec3(-50, -10, -10));  // front right
-  planeVertices1->push_back(osg::Vec3(10, -10, -10));   // back left
-  plane_left->setVertexArray(planeVertices1);
-
-  osg::DrawElementsUInt* plane1 =
-      new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-  plane1->push_back(0);
-  plane1->push_back(1);
-  plane1->push_back(2);
-  plane_left->addPrimitiveSet(plane1);
-
-  osg::Vec3Array* planeVertices2 = new osg::Vec3Array;
-  planeVertices2->push_back(osg::Vec3(-5, -6.5, 10));  // front left
-  planeVertices2->push_back(osg::Vec3(-50, -10+16.5, -10));   // front right
-  planeVertices2->push_back(osg::Vec3(10, -10+16.5, -10));    // back left
-  plane_right->setVertexArray(planeVertices2);
-
-  osg::DrawElementsUInt* plane2 =
-      new osg::DrawElementsUInt(osg::PrimitiveSet::TRIANGLES, 0);
-  plane2->push_back(0);
-  plane2->push_back(1);
-  plane2->push_back(2);
-  plane_right->addPrimitiveSet(plane2);
-*/
 
   osg::Point* point = new osg::Point;
   point->setSize(2.0f);
@@ -82,14 +27,6 @@ int Scanner(InputParameters *input_parameters) {
   linewidth->setWidth(2.0f);
   root->getOrCreateStateSet()->setAttributeAndModes(linewidth,
                                                     osg::StateAttribute::ON);
-
-  //////////////////////////////////////////////////////////////////////////////
-  plane_geode->getOrCreateStateSet()->setRenderingHint(
-      osg::StateSet::TRANSPARENT_BIN);
-  plane_geode->getOrCreateStateSet()->setAttributeAndModes(
-      new osg::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA),
-      osg::StateAttribute::ON);
-  //////////////////////////////////////////////////////////////////////////////
 
   root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
   model->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON);
@@ -101,17 +38,12 @@ int Scanner(InputParameters *input_parameters) {
   
   osg::Matrixf intrinsics_matrix;
   std::vector<double> distortion_matrix;  
-  IntrinsicsParser("src/camera.xml", intrinsics_matrix, distortion_matrix);
+  IntrinsicsParser("data/camera.xml", intrinsics_matrix, distortion_matrix);
 
   InitializeCamera(&viewer, camera, width, height, intrinsics_matrix);
   
   osg::Matrixd cameraTrans;
-  /*cameraRotation.makeRotate(
-  osg::DegreesToRadians(-20.0), osg::Vec3(0,1,0), // roll
-  osg::DegreesToRadians(-15.0), osg::Vec3(1,0,0) , // pitch
-  osg::DegreesToRadians( 10.0), osg::Vec3(0,0,1) ); // heading */
 
-  // 60 meters behind and 7 meters above the tank model
   viewer.setSceneData(root);
 
   //viewer.setCameraManipulator(new osgGA::TrackballManipulator());
@@ -140,7 +72,6 @@ int Scanner(InputParameters *input_parameters) {
   
   //double step_x = 0.02;
   double step_x = 1;
-  //double threshold = 0.35;
   double threshold = EuclideanDistance(osg::Vec3d(0,0,0),osg::Vec3d(step_x,step_x,step_x));
   //double step_y = 0.1;
   double step_y = scanning_speed/fps;
@@ -157,8 +88,7 @@ int Scanner(InputParameters *input_parameters) {
     cameraTrans.makeTranslate(camera_x, camera_y-k*step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
 
-    double laser_distance = 500;
-    
+    double laser_distance = 500;    
     //double laser_incline = 68.1301;
     //double laser_incline = 65;
     double laser_incline = 70;
@@ -193,15 +123,12 @@ int Scanner(InputParameters *input_parameters) {
     
     ImageProcessing(screenshot, intrinsics_matrix, input_parameters, k*step_y, laser_incline, point_cloud_points);
     cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
-    /////////////////////////////////////////////////////////
-    sleep(2);
     intersection_line_geode->removeDrawables (1, intersections_left.size() + intersections_right.size());
     //intersection_line_geode->removeDrawables (1, intersections_left.size());
     //intersection_line_geode->removeDrawables (1, intersections_right.size());
   }
 
   BuildPointCloud(point_cloud_points);
-
     
   return 0;
 }

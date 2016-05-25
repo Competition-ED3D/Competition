@@ -9,6 +9,8 @@
 #include <math.h>
 
 struct InputParameters {
+  string model_filename;
+    
   double scanning_speed;
   double fps;
   
@@ -18,10 +20,10 @@ struct InputParameters {
   double y_camera_coord;
   double z_camera_coord;
   
-  double camera_width = 2024;
-  double camera_height = 1088;
-  double pixel_size = 5.5e-6;
-  double focal_length = 25e-3;
+  double camera_width;
+  double camera_height;
+  double pixel_size;
+  double focal_length;
   
   double roi_height;
   double left_roi_start;
@@ -50,4 +52,3 @@ struct MyReadCallback : public osgUtil::IntersectionVisitor::ReadCallback {
 };
 
 #endif /* SCANNER_H */
-

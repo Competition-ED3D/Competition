@@ -4,9 +4,7 @@
     <df root="." name="0">
       <df name="src">
         <in>ImageProcessing.cpp</in>
-        <in>Scanner-orig.cpp</in>
         <in>Scanner.cpp</in>
-        <in>Scanner_orig.cpp</in>
         <in>ScreenCapture.cpp</in>
         <in>main.cpp</in>
       </df>
@@ -73,8 +71,6 @@
           </preprocessorList>
         </ccTool>
       </item>
-      <item path="src/Scanner-orig.cpp" ex="false" tool="1" flavor2="4">
-      </item>
       <item path="src/Scanner.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="1">
           <incDir>
@@ -96,8 +92,6 @@
             <Elem>qh_QHpointer</Elem>
           </preprocessorList>
         </ccTool>
-      </item>
-      <item path="src/Scanner_orig.cpp" ex="false" tool="1" flavor2="4">
       </item>
       <item path="src/ScreenCapture.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
