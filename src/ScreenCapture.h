@@ -36,6 +36,7 @@ using std::cout;
 using std::endl;
 using std::cerr;
 
+// Screenshot callback class.
 class ScreenCapture : public osg::Camera::DrawCallback {
 public:
 
