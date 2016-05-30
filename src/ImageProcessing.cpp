@@ -6,31 +6,47 @@
 
 int image_counter = 0;
 
+// Processes a screenshot retrieving the points of intersection between the laser and 
+// the model and transforming them in 3D points.
+//
+// Input parameters: 
+// source: the screenshot.
+// intrinsics_matrix: the camera intrinsic matrix.
+// input_parameters: the struct with all the input parameters.
+// y_offset: the offset describing how much the two lasers and the camera has moved on the y-axis.
+// point_cloud_points: the vector to fill with the 3D points.
 int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix, struct InputParameters *input_parameters, float y_offset, vector<Point3f>& point_cloud_points) {
-
+    // Defines the Mat with intrinsics parameters.
     Mat intrinsics = Mat::eye(3, 3, CV_32F);
     intrinsics.at<float>(0, 0) = intrinsics_matrix(0, 0);
     intrinsics.at<float>(0, 2) = intrinsics_matrix(0, 2);
     intrinsics.at<float>(1, 1) = intrinsics_matrix(1, 1);
     intrinsics.at<float>(1, 2) = intrinsics_matrix(1, 2);
     intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
-
+    
+    // Defines a Mat representing the source screenshot.
     Mat image(source->t(), source->s(), CV_8UC3);
     image.data = (uchar*) source->data();
+    // Flips the image vertically.
     flip(image, image, 0);
+    
     float roi_height = input_parameters->roi_height;
     float y_start_left = input_parameters->left_roi_start;
-    //int y_start_right = image.rows - y_start_left - roi_height;
     float y_start_right = input_parameters->right_roi_start;
     
+    // Extracts the left roi from the image.
     Rect region_of_interest = Rect(0, y_start_left, image.cols, roi_height);
     Mat image_roi_left(image, region_of_interest);
+    // Converts the roi in black and white.
     cv::cvtColor(image_roi_left, image_roi_left, CV_BGR2GRAY);
     
+    // Extracts the right roi from the image.
     region_of_interest = Rect(0, y_start_right, image.cols, roi_height);
     Mat image_roi_right(image, region_of_interest);
+    // Converts the roi in black and white.
     cv::cvtColor(image_roi_right, image_roi_right, CV_BGR2GRAY);
 
+    // Writes the rois to file.
     string name = "roi_left_" + std::to_string(image_counter) + ".png";
     imwrite(name, image_roi_left);
     name = "roi_right_" + std::to_string(image_counter) + ".png";
@@ -42,24 +58,34 @@ int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix, struct I
     vector<cv::Point3f> intersection_points_left;
     vector<cv::Point3f> intersection_points_right;
 
-    threshold(image_roi_left, intersections_left, 254, 255, 3 );
-    LoadIntersectionPoints(intersections_left, intersection_points_left);
+    // Applies a threshold to extract the intersection points, so if a pixel intensity is less 
+    // than or equal to 254 it is set to 0.
+    threshold(image_roi_left, intersections_left, 254, 255, 3);
+    threshold(image_roi_right, intersections_right, 254, 255, 3);
 
-    threshold(image_roi_right, intersections_right, 254, 255, 3 );
+    // Stores the white pixels in a vector.
+    LoadIntersectionPoints(intersections_left, intersection_points_left);
     LoadIntersectionPoints(intersections_right, intersection_points_right);
     
+    // Converts the 2D pixel to 3D points.
     InsertPoints(intersection_points_left, intrinsics, input_parameters, y_offset, LEFT, point_cloud_points);
     InsertPoints(intersection_points_right, intrinsics, input_parameters, y_offset, RIGHT, point_cloud_points);
 
     return 0;
 }
 
+// Stores points in a vector using as their coordinates the ones of the white pixels of an image.
+// 
+// Input parameters:
+// intersections: the image.
+// intersection_points: the output vector.
 void LoadIntersectionPoints(Mat intersections, vector<Point3f>& intersection_points) {
-        for (int i = 0; i < intersections.cols; i++) {
+    Point3f p;
+    for (int i = 0; i < intersections.cols; i++) {
         for (int j = 0; j < intersections.rows; j++) {
             Scalar intensity = intersections.at<uchar>(j, i);
+            // Checks if the pixel is white.
             if (intensity.val[0] == 255) {
-                Point3f p;
                 p.x = i;
                 p.y = j;
                 intersection_points.push_back(p);
@@ -69,73 +95,79 @@ void LoadIntersectionPoints(Mat intersections, vector<Point3f>& intersection_poi
     }
 }
 
+// Transforms 2D points (pixel) in 3D points using triangulation.
+//
+// Input paramaters:
+// intersection_points: a vector containing the points of intersection between the laser and the model.
+// intrinsics: the camera intrinsics matrix.
+// input_parameters: the struct with all the input parameters.
+// y_offset: the offset describing how much the two lasers and the camera has moved on the y-axis. 
+// roi: a boolean indicating the roi (left or right).
+// point_cloud_points: the output vector with the points in world coordinates.
 void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics, struct InputParameters *input_parameters, float y_offset, bool roi, vector<Point3f>& point_cloud_points) {
     float pixel_size = input_parameters->pixel_size;
-    float baseline = input_parameters->laser_distance / pixel_size; //Converto in pixel
-    float focal_length = input_parameters->focal_length / pixel_size; //Converto in pixel
-    float alfa = 90 - input_parameters->laser_incline;
-    float alfa_rad = 2 * M_PI * alfa / 360;
-    float height = input_parameters->camera_height;
-    int y_middle = height/2;
+    float baseline = input_parameters->laser_distance;
+    float focal_length = input_parameters->focal_length;
     float y_start_left = input_parameters->left_roi_start;
     float y_start_right = input_parameters->right_roi_start;
+    float height = input_parameters->camera_height;
+    // The y coordinate of the middle pixel in the image.
+    int y_middle = height/2;
+    float alfa = 90 - input_parameters->laser_incline;
+    // Converts the angle from degree to radians.
+    float alfa_rad = 2 * M_PI * alfa / 360;
     
     float absolute_pixel_position, relative_pixel_position, pixel_position, z_coord;
     Point3f point;
     
+    // If no intersection points are found, then return.
     if (intersection_points.size() == 0)
         return;
     
     for (int i = 0; i < intersection_points.size() - 1; i++) {
+        // The y coordinate of the pixel relative to the roi.
         pixel_position = intersection_points.at(i).y;
-        if (roi) { // left roi
+        if (roi) { // Left roi.
+            // The position of the current pixel relative to the entire screenshot.
             absolute_pixel_position = y_start_left + pixel_position;
-            relative_pixel_position = y_middle- absolute_pixel_position;
-        } else { // right:y_ start = image.cols - y_start_left - roi_height           
-            //absolute_pixel_position = height - 100 - roi_height + pixel_position;
+            // The distance from the current pixel and the middle pixel.
+            relative_pixel_position = y_middle - absolute_pixel_position;
+        } else { // Right roi.
+            // The position of the current pixel relative to the entire screenshot.
             absolute_pixel_position = y_start_right + pixel_position;
+            // The distance from the current pixel and the middle pixel.
             relative_pixel_position = absolute_pixel_position - y_middle;
         }
         point.x = intersection_points.at(i).x;
         point.y = absolute_pixel_position;
-        z_coord = baseline * focal_length / (focal_length * tan(alfa_rad) - relative_pixel_position);
-        z_coord = z_coord * pixel_size; // converto in mm
+        // Computes the z coordinate using triangulation.
+        z_coord = baseline * focal_length / (focal_length * tan(alfa_rad) - relative_pixel_position*pixel_size);
         point.z = z_coord;
         //cout << "Coordinate punto che sta per essere convertito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
-        ConvertCoordinates(point, intrinsics);
-        point.y = point.y - y_offset*0.55;
-        //point.y = point.y - y_offset;
-        //cout<<"y_offset "<<y_offset<<endl;
-        //point.z = -point.z;
+        // Converts from pixel to world coordinates.
+        ConvertCoordinates(point, intrinsics, input_parameters, y_offset);
+        point.z = -point.z;
         //cout << "Coordinate punto che sta per essere inserito: (" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
         point_cloud_points.push_back(point);
     }
 }
 
+// Builds the point cloud.
+//
+// Input parameters:
+// point_cloud_points: a vector containing the points to insert in the point cloud.
 void BuildPointCloud(vector<Point3f> point_cloud_points) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr output(
             new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointXYZRGB output_point;
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr piano(
-            new pcl::PointCloud<pcl::PointXYZRGB>);
-    pcl::PointXYZRGB punto_piano;
-    /*for (double i = -0.75; i < 1.00; i = i + 0.1) {
-      for (double j = -0.75; j < 1.00; j = j + 0.1) {
-        punto_piano.r = 0;
-        punto_piano.g = 0;
-        punto_piano.b = 255;
-        punto_piano.x = -i;
-        punto_piano.y = -j;
-        punto_piano.z = 0;
-        piano->points.push_back(punto_piano);
-      }
-    }*/
-    // Builds the pointcloud
+
+    // Builds the pointcloud.
     for (int i = 0; i < point_cloud_points.size(); i++) {
-        // Sets RGB values and XYZ coordinates of the point
+        // Sets RGB values of the point.
         output_point.r = 255;
         output_point.g = 0;
         output_point.b = 0;
+        // Sets XYZ coordinates of the point.
         output_point.x = point_cloud_points.at(i).x;
         output_point.y = point_cloud_points.at(i).y;
         output_point.z = point_cloud_points.at(i).z;
@@ -145,56 +177,43 @@ void BuildPointCloud(vector<Point3f> point_cloud_points) {
     output->width = 1;
     output->height = output->points.size();
 
+    // Visualizes the point cloud.
     cout << "Visualization... Press Q to exit." << endl;
     pcl::visualization::PCLVisualizer viewer("Reconstructed scene");
     viewer.setBackgroundColor(0, 0, 0);
     pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(
             output);
-    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb2(
-            piano);
     viewer.addPointCloud<pcl::PointXYZRGB> (output, rgb, "cloud");
-    //viewer.addPointCloud<pcl::PointXYZRGB> (piano, rgb2, "piano");
     //viewer.addCoordinateSystem(100.0, "cloud");
     //viewer.initCameraParameters();
     viewer.spin();
-
+    
+    // Saves the point cloud to file.
     pcl::io::savePCDFileASCII("output.pcd", *output);
 }
 
-void ConvertCoordinates(Point3f& point, Mat intrinsics) {
-    //float point_coord[] = {point.x*point.z, point.y*point.z, point.z};
+// Converts the coordinates of a point from screen to world coordinates.
+//
+// Input parameters:
+// point: the point to convert.
+// intrinsics: the camera intrinsics matrix.
+// input_parameters: the struct with all the input parameters.
+// y_offset: the offset describing how much the two lasers and the camera has moved on the y-axis.
+void ConvertCoordinates(Point3f& point, Mat intrinsics, struct InputParameters *input_parameters, float y_offset) {
     float point_coord[] = {point.x, point.y, 1};
-    float camera_coord[] = {306.998, 266.1, -1519.47};
-    //camera_x 306.998 camera_y 236.1 camera_z -1519.47
-    float z = point.z;
-    float lambda = z - (-1519.47);
-    
-    Mat converted_point = Mat(3, 1, CV_32F, point_coord);
+    // The actual absolute position of the camera.
+    float camera_coord[] = {input_parameters->x_camera_absolute, input_parameters->y_camera_absolute - y_offset, input_parameters->z_camera_absolute};
+        
+    // Defines the necessary matrices.
+    Mat point_2D = Mat(3, 1, CV_32F, point_coord);
     Mat camera_center = Mat(3, 1, CV_32F, camera_coord);
+    
+    float lambda = point.z - (input_parameters->z_camera_absolute);
     Mat inverted_intrinsics = intrinsics.inv();
 
-    //Mat out = lambda*inverted_intrinsics * converted_point;
-    Mat out = lambda*inverted_intrinsics * converted_point + camera_center;
-    //Mat out = inverted_intrinsics * converted_point;
+    // Converts the point coordinates using the camera intrinsics parameters and position.
+    Mat out = lambda * inverted_intrinsics * point_2D + camera_center;
     point.x = out.at<float>(0, 0);
     point.y = out.at<float>(0, 1);
-    //point.z = out.at<float>(0, 2);
-    //point.z = point.z/lambda;
-    //double point_coord[] = {x, y, point.z};
-    //Mat converted_point = Mat(3, 1, CV_64F, point_coord);
-    //Mat inverted_intrinsics = intrinsics.inv();
-
-    //double cx = intrinsics.at<double>(2, 0);
-    //double cy = intrinsics.at<double>(2, 1);
-    /*float cx = intrinsics.at<float>(0, 2);
-    float cy = intrinsics.at<float>(1, 2);
-    
-    float fx = intrinsics.at<float>(0, 0);
-    float fy = intrinsics.at<float>(1, 1);
-    point.x = (point.x*point.z - cx * point.z) / fx;
-    point.y = (point.y*point.z - cy * point.z) / fy;*/
-    cout<<"lambda "<<lambda<<endl;
-    cout<<"point x y z dopo "<<point.x<<" "<<point.y<<" "<<point.z<<endl;
-    //  getchar();*/
-
+    point.z = out.at<float>(0, 2);
 }

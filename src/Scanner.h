@@ -20,6 +20,10 @@ struct InputParameters {
   float y_camera_coord;
   float z_camera_coord;
   
+  float x_camera_absolute;
+  float y_camera_absolute;
+  float z_camera_absolute;
+  
   int camera_width;
   int camera_height;
   float pixel_size;

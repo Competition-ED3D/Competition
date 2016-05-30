@@ -60,7 +60,10 @@ int Scanner(InputParameters *input_parameters) {
   //double camera_z = -900; //valore usato prima di introdurre posInWorld
   float camera_z = posInWorld[2] + input_parameters->z_camera_coord;
   cout<<"camera_x "<<camera_x<<" "<<"camera_y "<<camera_y<<" "<<"camera_z "<<camera_z<<endl;
-
+  input_parameters->x_camera_absolute = camera_x;  
+  input_parameters->y_camera_absolute = camera_y;
+  input_parameters->z_camera_absolute = camera_z;
+  
   cameraTrans.makeTranslate(camera_x, camera_y, camera_z );
   viewer.getCamera()->setViewMatrix(cameraTrans);
   viewer.getCamera()->setClearColor( osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f) ); 

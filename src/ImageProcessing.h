@@ -27,7 +27,7 @@ int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix, struct I
 void LoadIntersectionPoints(Mat intersections, vector<Point3f>& intersection_points);
 void InsertPoints (vector<Point3f> intersection_points, Mat intrinsics, struct InputParameters *input_parameters, float y_offset, bool roi, vector<Point3f>& point_cloud_points);
 void BuildPointCloud(vector<Point3f> point_cloud_points);
-void ConvertCoordinates(Point3f& point, Mat intrinsics);
+void ConvertCoordinates(Point3f& point, Mat intrinsics, struct InputParameters *input_parameters, float y_offset);
 
 #endif /* IMAGEPROCESSING_H */
 
