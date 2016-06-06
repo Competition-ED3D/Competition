@@ -15,6 +15,8 @@ int image_counter = 0;
 // input_parameters: the struct with all the input parameters.
 // y_offset: the offset describing how much the two lasers and the camera have
 // moved on the y-axis.
+//
+// Output parameters:
 // point_cloud_points: the vector to fill with the 3D points.
 int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix,
                     struct InputParameters* input_parameters, float y_offset,
@@ -234,7 +236,7 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
   Mat point_2D = Mat(3, 1, CV_32F, point_coord);
   Mat camera_center = Mat(3, 1, CV_32F, camera_coord);
 
-  float lambda = point.z - (input_parameters->z_camera_absolute);
+  float lambda = point.z;
   Mat inverted_intrinsics = intrinsics.inv();
 
   // Converts the point coordinates using the camera intrinsics parameters and
