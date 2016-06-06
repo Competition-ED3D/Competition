@@ -84,6 +84,8 @@ int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix,
 //
 // Input parameters:
 // intersections: the image.
+//
+// Output parameters:
 // intersection_points: the output vector.
 void LoadIntersectionPoints(Mat intersections,
                             vector<Point3f>& intersection_points) {
@@ -112,7 +114,9 @@ void LoadIntersectionPoints(Mat intersections,
 // y_offset: the offset describing how much the two lasers and the camera has
 // moved on the y-axis.
 // roi: a boolean indicating the roi (left or right).
-// point_cloud_points: the output vector with the points in world coordinates.
+//
+// Output parameters:
+// point_cloud_points: the vector with the points in world coordinates.
 void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
                   struct InputParameters* input_parameters, float y_offset,
                   bool roi, vector<Point3f>& point_cloud_points) {
