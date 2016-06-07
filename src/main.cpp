@@ -76,6 +76,8 @@ bool InputParser(string filename, InputParameters *input_parameters) {
 
   fs["laser_aperture"] >> input_parameters->laser_aperture;
 
+  fs.release();
+  
   return true;
 }
 
