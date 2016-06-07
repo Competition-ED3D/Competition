@@ -134,8 +134,7 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
   // Converts the angle from degrees to radians.
   float alfa_rad = 2 * M_PI * alfa / 360;
 
-  float absolute_pixel_position, relative_pixel_position, pixel_position,
-      z_coord;
+  float absolute_pixel_position, relative_pixel_position, pixel_position;
   Point3f point;
 
   // If no intersection points are found, then return.
@@ -143,7 +142,7 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
       return;
   }
 
-  for (int i = 0; i < intersection_points.size() - 1; i++) {
+  for (int i = 0; i < intersection_points.size(); i++) {
     // The y coordinate of the pixel relative to the roi.
     pixel_position = intersection_points.at(i).y;
     if (roi) {  // Left roi.
@@ -160,14 +159,12 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
     point.x = intersection_points.at(i).x;
     point.y = absolute_pixel_position;
     // Computes the Z coordinate using triangulation.
-    z_coord = baseline * focal_length / (focal_length * tan(alfa_rad) -
+    point.z = baseline * focal_length / (focal_length * tan(alfa_rad) -
                                          relative_pixel_position * pixel_size);
-    point.z = z_coord;
     // cout << "Coordinate punto che sta per essere convertito: (" << point.x <<
     // ", " << point.y << ", " << point.z << ")" << endl;
     // Converts from pixel to world coordinates.
     ConvertCoordinates(point, intrinsics, input_parameters, y_offset);
-    point.z = -point.z;
     // cout << "Coordinate punto che sta per essere inserito: (" << point.x <<
     // ", " << point.y << ", " << point.z << ")" << endl;
     point_cloud_points.push_back(point);
@@ -229,19 +226,26 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
   float point_coord[] = {point.x, point.y, 1};
   // The current absolute position of the camera.
   float camera_coord[] = {input_parameters->x_camera_absolute,
-                          input_parameters->y_camera_absolute - y_offset,
+                          input_parameters->y_camera_absolute + y_offset,
                           input_parameters->z_camera_absolute};
 
   // Defines the necessary matrices.
   Mat point_2D = Mat(3, 1, CV_32F, point_coord);
   Mat camera_center = Mat(3, 1, CV_32F, camera_coord);
 
-  float lambda = point.z;
+  // Rotation matrix. OpenSceneGraph's camera has the z-axis pointing downward, 
+  // which requires a rotation of 180 degrees around the x-axis to adjust it so
+  // it points upwards.
+  Mat rotation = Mat::eye(3, 3, CV_32F);
+  rotation.at<float>(1, 1) = cos(M_PI);
+  rotation.at<float>(2, 2) = cos(M_PI);
+  
+  Mat inverted_rotation = rotation.inv();
   Mat inverted_intrinsics = intrinsics.inv();
 
-  // Converts the point coordinates using the camera intrinsics parameters and
-  // position.
-  Mat out = lambda * inverted_intrinsics * point_2D + camera_center;
+  // Converts the point coordinates using the camera intrinsics and extrinsics 
+  // parameters.
+  Mat out = point.z * inverted_intrinsics * inverted_rotation * point_2D + camera_center;
   point.x = out.at<float>(0, 0);
   point.y = out.at<float>(0, 1);
   point.z = out.at<float>(0, 2);
