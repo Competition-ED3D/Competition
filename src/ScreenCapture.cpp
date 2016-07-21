@@ -119,11 +119,10 @@ bool InitializeCamera(osg::ref_ptr<osg::Camera> camera, unsigned int width,
   camera->setViewport(new osg::Viewport(0, 0, width, height));
   GLenum buffer = pbuffer->getTraits()->doubleBuffer ? GL_BACK : GL_FRONT;
   camera->setDrawBuffer(buffer);
-  camera->setReadBuffer(buffer);
-
+  camera->setReadBuffer(buffer); 
+  
   // Sets the screencapture callback.
   camera->setFinalDrawCallback(new ScreenCapture(readBuffer));
-
   // Sets the intrinsics.
   camera->setProjectionMatrix(intrinsics_matrix);
 

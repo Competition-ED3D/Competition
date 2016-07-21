@@ -18,7 +18,7 @@ int image_counter = 0;
 //
 // Output parameters:
 // point_cloud_points: the vector to fill with the 3D points.
-int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix,
+int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
                     struct InputParameters* input_parameters, float y_offset,
                     vector<Point3f>& point_cloud_points) {
   // Defines the Mat with intrinsics parameters.
@@ -30,11 +30,15 @@ int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix,
   intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
 
   // Defines the Mat representing the source screenshot.
-  Mat image(source->t(), source->s(), CV_8UC3);
-  image.data = (uchar*)source->data();
+  //Mat image(source->t(), source->s(), CV_8UC3);
+  //image.data = (uchar*)source->data();
   // Flips the image vertically.
-  flip(image, image, 0);
+  //flip(image, image, 0);
 
+  imwrite("processing.png", source);
+  
+  Mat image = source;
+  
   float roi_height = input_parameters->roi_height;
   float y_start_left = input_parameters->left_roi_start;
   float y_start_right = input_parameters->right_roi_start;
@@ -43,13 +47,13 @@ int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix,
   Rect region_of_interest = Rect(0, y_start_left, image.cols, roi_height);
   Mat image_roi_left(image, region_of_interest);
   // Converts the roi to grayscale.
-  cv::cvtColor(image_roi_left, image_roi_left, CV_BGR2GRAY);
+  //cv::cvtColor(image_roi_left, image_roi_left, CV_BGR2GRAY);
 
   // Extracts the right roi from the image.
   region_of_interest = Rect(0, y_start_right, image.cols, roi_height);
   Mat image_roi_right(image, region_of_interest);
   // Converts the roi to grayscale.
-  cv::cvtColor(image_roi_right, image_roi_right, CV_BGR2GRAY);
+  //cv::cvtColor(image_roi_right, image_roi_right, CV_BGR2GRAY);
 
   // Writes the rois to file.
   string name = "roi_left_" + std::to_string(image_counter) + ".png";
@@ -65,12 +69,12 @@ int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix,
 
   // Applies a threshold to extract the intersection points, so if a pixel
   // intensity is less than or equal to 254, it is set to 0.
-  threshold(image_roi_left, intersections_left, 254, 255, 3);
-  threshold(image_roi_right, intersections_right, 254, 255, 3);
+  /*threshold(image_roi_left, intersections_left, 254, 255, 3);
+  threshold(image_roi_right, intersections_right, 254, 255, 3);*/
 
   // Stores the white pixels in a vector.
-  LoadIntersectionPoints(intersections_left, intersection_points_left);
-  LoadIntersectionPoints(intersections_right, intersection_points_right);
+  LoadIntersectionPoints(image_roi_left, intersection_points_left);
+  LoadIntersectionPoints(image_roi_right, intersection_points_right);
 
   // Converts the 2D pixel to 3D points.
   InsertPoints(intersection_points_left, intrinsics, input_parameters, y_offset,
@@ -165,6 +169,7 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
     // ", " << point.y << ", " << point.z << ")" << endl;
     // Converts from pixel to world coordinates.
     ConvertCoordinates(point, intrinsics, input_parameters, y_offset);
+    point.y = point.y + y_offset;
     // cout << "Coordinate punto che sta per essere inserito: (" << point.x <<
     // ", " << point.y << ", " << point.z << ")" << endl;
     point_cloud_points.push_back(point);
@@ -226,7 +231,7 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
   float point_coord[] = {point.x, point.y, 1};
   // The current absolute position of the camera.
   float camera_coord[] = {input_parameters->x_camera_absolute,
-                          input_parameters->y_camera_absolute + y_offset,
+                          input_parameters->y_camera_absolute,
                           input_parameters->z_camera_absolute};
 
   // Defines the necessary matrices.
@@ -237,6 +242,7 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
   // which requires a rotation of 180 degrees around the x-axis to adjust it so
   // it points upwards.
   Mat rotation = Mat::eye(3, 3, CV_32F);
+  rotation.at<float>(0, 0) = cos(M_PI);
   rotation.at<float>(1, 1) = cos(M_PI);
   rotation.at<float>(2, 2) = cos(M_PI);
   
@@ -246,6 +252,7 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
   // Converts the point coordinates using the camera intrinsics and extrinsics 
   // parameters.
   Mat out = point.z * inverted_intrinsics * inverted_rotation * point_2D + camera_center;
+  //Mat out = point.z * inverted_intrinsics * point_2D + camera_center;
   point.x = out.at<float>(0, 0);
   point.y = out.at<float>(0, 1);
   point.z = out.at<float>(0, 2);

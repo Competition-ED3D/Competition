@@ -25,7 +25,7 @@ using std::cout;
 using std::endl;
 using std::vector;
 
-int ImageProcessing(osg::Image* source, osg::Matrixf intrinsics_matrix,
+int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
                     struct InputParameters* input_parameters, float y_offset,
                     vector<Point3f>& point_cloud_points);
 void LoadIntersectionPoints(Mat intersections,
