@@ -156,10 +156,21 @@ int Scanner(InputParameters* input_parameters) {
     // Displays the intersections on the model.
     ShowIntersections(intersections_left, intersection_line_geode);
     ShowIntersections(intersections_right, intersection_line_geode);
+    
+    Mat intrinsics = Mat::eye(3, 3, CV_32F);
+    intrinsics.at<float>(0, 0) = intrinsics_matrix(0, 0);
+    intrinsics.at<float>(0, 2) = intrinsics_matrix(0, 2);
+    intrinsics.at<float>(1, 1) = intrinsics_matrix(1, 1);
+    intrinsics.at<float>(1, 2) = intrinsics_matrix(1, 2);
+    intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
+    if(intersections_right.size()!=0)
+        projectToImagePlane(intersections_right, intrinsics, input_parameters, -k*step_y);
 
     // Advances to the next frame and takes the screenshot of the scene using
     // the previously defined callback.
     viewer.frame();
+    
+    getchar();
 
     // Processes the screenshot, extracting the points that will form the point
     // cloud.
@@ -364,4 +375,45 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
   }
 
   return true;
+}
+
+void projectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
+ Mat intrinsics, struct InputParameters* input_parameters, float step){
+    cv::Mat tVec(3, 1, cv::DataType<float>::type); // Translation vector
+    cv::Mat rVec(3, 1, cv::DataType<float>::type); // Translation vector
+    
+    std::vector<cv::Point3f> points;
+    for(int i=0; i<intersections.size(); i++){
+        cv::Point3f p;
+        /*p.x = (*intersections.at(i).get())[0].x();
+        p.y = (*intersections.at(i).get())[0].y()+step;
+        p.z = (*intersections.at(i).get())[0].z();*/
+        p.x = intersections.at(i)->at(0).x();
+        p.y = intersections.at(i)->at(0).y();
+        p.z = intersections.at(i)->at(0).z();
+        points.push_back(p);
+    }
+        
+    tVec.at<float>(0) = input_parameters->x_camera_absolute;
+    tVec.at<float>(1) = input_parameters->y_camera_absolute;
+    tVec.at<float>(2) = input_parameters->z_camera_absolute;
+    rVec.at<float>(0) = 0;
+    rVec.at<float>(1) = 0;
+    rVec.at<float>(2) = 0;
+    
+    cv::Mat distCoeffs(5, 1, cv::DataType<float>::type);
+    distCoeffs.at<float>(0) = 0;
+    distCoeffs.at<float>(1) = 0;
+    distCoeffs.at<float>(2) = 0;
+    distCoeffs.at<float>(3) = 0;
+    distCoeffs.at<float>(4) = 0;
+    std::vector<cv::Point2f> projectedPoints;
+    
+    projectPoints(points, rVec, tVec, intrinsics, distCoeffs, projectedPoints);
+    
+    for(int i=0; i<projectedPoints.size(); i++){
+       //cout<<"intersections.at("<<i<<") di coord x: "<<(*intersections.at(i).get())[0].x()<<", y: "<<(*intersections.at(i).get())[0].y()<<", z: "<<(*intersections.at(i).get())[0].z()<<" proiettato a x: "<<projectedPoints.at(i).x<<", y: "<<projectedPoints.at(i).y<<endl;
+        cout<<"intersections.at("<<i<<") di coord x: "<<intersections.at(i)->at(0).x()<<", y: "<<intersections.at(i)->at(0).y()<<", z: "<<intersections.at(i)->at(0).z()<<" proiettato a x: "<<projectedPoints.at(i).x<<", y: "<<projectedPoints.at(i).y<<endl;
+    }
+    
 }
