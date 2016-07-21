@@ -164,12 +164,11 @@ int Scanner(InputParameters* input_parameters) {
     intrinsics.at<float>(1, 2) = intrinsics_matrix(1, 2);
     intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
     if(intersections_right.size()!=0)
-        projectToImagePlane(intersections_right, intrinsics, input_parameters, -k*step_y);
-
+        projectToImagePlane(intersections_right, intrinsics, input_parameters, -k*step_y, threshold);
+    
     // Advances to the next frame and takes the screenshot of the scene using
     // the previously defined callback.
     viewer.frame();
-    
     getchar();
 
     // Processes the screenshot, extracting the points that will form the point
@@ -335,6 +334,11 @@ float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
               pow(point1.z() - point2.z(), 2));
 }
 
+int EuclideanDistance(Point2i point1, Point2i point2){
+      return sqrt(pow(point1.x - point2.x, 2) +
+              pow(point1.y - point2.y, 2));
+}
+
 
 // Parses the input XML file containing the camera intrinsics and distortion
 // vector. Returns true if successful.
@@ -378,7 +382,7 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
 }
 
 void projectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
- Mat intrinsics, struct InputParameters* input_parameters, float step){
+ Mat intrinsics, struct InputParameters* input_parameters, float step, float threshold){
     cv::Mat tVec(3, 1, cv::DataType<float>::type); // Translation vector
     cv::Mat rVec(3, 1, cv::DataType<float>::type); // Translation vector
     
@@ -411,9 +415,45 @@ void projectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersection
     
     projectPoints(points, rVec, tVec, intrinsics, distCoeffs, projectedPoints);
     
-    for(int i=0; i<projectedPoints.size(); i++){
+    for(int i = 0; i < projectedPoints.size(); i++){
        //cout<<"intersections.at("<<i<<") di coord x: "<<(*intersections.at(i).get())[0].x()<<", y: "<<(*intersections.at(i).get())[0].y()<<", z: "<<(*intersections.at(i).get())[0].z()<<" proiettato a x: "<<projectedPoints.at(i).x<<", y: "<<projectedPoints.at(i).y<<endl;
         cout<<"intersections.at("<<i<<") di coord x: "<<intersections.at(i)->at(0).x()<<", y: "<<intersections.at(i)->at(0).y()<<", z: "<<intersections.at(i)->at(0).z()<<" proiettato a x: "<<projectedPoints.at(i).x<<", y: "<<projectedPoints.at(i).y<<endl;
     }
+    
+    Mat image = Mat(input_parameters->camera_height,input_parameters->camera_width,CV_32S);
+    /*for(int i = 0; i < projectedPoints.size(); i++){
+        cout<<"(int)projectedPoints.at("<<i<<").y: "<<(int)projectedPoints.at(i).y<<", (int)projectedPoints.at("<<i<<").x: "<<(int)projectedPoints.at(i).x<<endl;
+        image.at<uchar>((int)projectedPoints.at(i).y,(int)projectedPoints.at(i).x) = 255;
+    }*/
+    cout<<"threshold "<<threshold<<endl;
+    Vec3i color;
+    color[0] = 255;
+    color[1] = 255;
+    color[2] = 255;
+    std::vector<cv::Point2i> projectedPoints_integer;
+    for(int i = 0; i < projectedPoints.size(); i++){
+        Point2i p;
+        p.x = (int) projectedPoints.at(i).x;
+        p.y = (int) projectedPoints.at(i).y;
+        //cout<<"projectedPoints_integer.at("<<i<<").x: "<<projectedPoints_integer.at(i).x<<", y: "<<projectedPoints_integer.at(i).y<<endl;
+        if(projectedPoints_integer.size() != 0 && EuclideanDistance(projectedPoints_integer.at(projectedPoints_integer.size()-1),p) >= threshold) {
+            cout<<"distanza: "<<EuclideanDistance(projectedPoints_integer.at(projectedPoints_integer.size()-1),p)<<endl;
+            if(projectedPoints_integer.size() == 1)
+                image.at<Vec3i>(projectedPoints_integer.at(0).x,projectedPoints_integer.at(0).y) = color;
+            else 
+                polylines(image, projectedPoints_integer, 0, Scalar(255,255,255));
+            projectedPoints_integer.clear();
+        }
+        projectedPoints_integer.push_back(p);
+    }
+    
+    if(projectedPoints_integer.size() == 1)
+        image.at<Vec3i>(projectedPoints_integer.at(0).x,projectedPoints_integer.at(0).y) = color;
+    else if(projectedPoints_integer.size() > 1)
+        polylines(image, projectedPoints_integer, 0, Scalar(255,255,255));
+
+    //polylines(image, projectedPoints_integer, 0, Scalar(255,255,255));
+    flip(image, image, 0);
+    imwrite("test.png", image);
     
 }

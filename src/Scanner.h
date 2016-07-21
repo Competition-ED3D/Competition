@@ -46,10 +46,11 @@ void ComputeIntersections(
 void ShowIntersections(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
                        osg::Geode* intersection_line_geode);
 float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2);
+int EuclideanDistance(Point2i point1, Point2i point2);
 bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
                       std::vector<double>& distortion_matrix);
 void projectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
- Mat intrinsics, struct InputParameters* input_parameters, float step);
+ Mat intrinsics, struct InputParameters* input_parameters, float step, float threshold);
 
 struct MyReadCallback : public osgUtil::IntersectionVisitor::ReadCallback {
   virtual osg::Node* readNodeFile(const std::string& filename) {
