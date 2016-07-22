@@ -176,13 +176,14 @@ int Scanner(InputParameters* input_parameters) {
     
     Mat output = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
     bitwise_or(scene_right, scene_left, output);
-
+    
     // Processes the screenshot, extracting the points that will form the point
     // cloud.
     if(intersections_right.size()!=0 || intersections_left.size()!=0)
         ImageProcessing(output, intrinsics_matrix, input_parameters, k * step_y,
                     point_cloud_points);
-    //getchar();
+    if(k==2) 
+      getchar();
     cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
 
     // Removes the previously found intersection points from the intersection
@@ -385,9 +386,9 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
 
 void ProjectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
  Mat intrinsics, struct InputParameters* input_parameters, float step, Mat& output) {
-    cv::Mat tVec(3, 1, cv::DataType<float>::type); // Translation vector
-    cv::Mat rVec(3, 1, cv::DataType<float>::type); // Rotation vector
-    
+    Mat tVec(3, 1, DataType<float>::type); // Translation vector
+    Mat rVec(3, 1, DataType<float>::type); // Rotation vector
+     
     tVec.at<float>(0) = input_parameters->x_camera_absolute;
     tVec.at<float>(1) = input_parameters->y_camera_absolute + step;
     tVec.at<float>(2) = input_parameters->z_camera_absolute;
@@ -408,10 +409,7 @@ void ProjectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersection
     color[2] = 255;
     
     Mat image = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
-    //output = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
-    
-    int count = 0;
-    
+     
     for (int i = 0; i < intersections.size(); i++) {
     std::vector<cv::Point3f> points;
     std::vector<cv::Point2f> projectedPoints;
@@ -433,32 +431,20 @@ void ProjectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersection
           p.x = (int) projectedPoints.at(i).x;
           p.y = (int) projectedPoints.at(i).y;
           projectedPoints_integer.push_back(p);
-          //cout << "x: " << p.x << " y: " <<p.y << endl;
       }
       polylines(image, projectedPoints_integer, 0, Scalar(255,255,255));     
-      //imwrite("prima_bitwise_o.png", output);
-      //imwrite("prima_bitwise_i.png", image);
       bitwise_or(image, output, output);
-      //imwrite("dopo_bitwis.png", output);
-      //getchar();
     } else { // Ho un punto
-      count++;
-      //cout << "n punti singoli:" << count<< endl;
       Point3f point;
       point.x = intersections.at(i)->at(0).x();
       point.y = intersections.at(i)->at(0).y();
       point.z = intersections.at(i)->at(0).z();
-      //cout << "(x, y, z): " << "(" << point.x << ", " << point.y << ", " << point.z << ")" << endl;
       points.push_back(point);
       projectPoints(points, rVec, tVec, intrinsics, distCoeffs, projectedPoints); 
       Point2f proj_point = projectedPoints.at(0);
-      //cout << "projectedPoints.at(0).x: " << projectedPoints.at(0).x << " projectedPoints.at(0).y: "
-      //        << projectedPoints.at(0).y << endl;
-      //output.at<uchar>((int) proj_point.x, (int) proj_point.y) = 255;
-      //output.at<uchar>(Point((int) proj_point.x, (int) proj_point.y)) = 255;
-    }       
+      output.at<uchar>(Point((int) proj_point.x, (int) proj_point.y)) = 255;
+    }  
   }    
-  //flip(output, output, 0);
-  //flip(output, output, 1);
-  imwrite("test.png", output);
+    
+  //imwrite("test.png", output);
 }

@@ -29,32 +29,25 @@ int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
   intrinsics.at<float>(1, 2) = intrinsics_matrix(1, 2);
   intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
 
-  // Defines the Mat representing the source screenshot.
-  //Mat image(source->t(), source->s(), CV_8UC3);
-  //image.data = (uchar*)source->data();
   // Flips the image vertically.
   //flip(image, image, 0);
 
-  imwrite("processing.png", source);
-  
-  Mat image = source;
+  if(y_offset/10 == 1)
+    imwrite("processing1.png", source);
+  if(y_offset/10 == 19)
+    imwrite("processing19.png", source);
   
   float roi_height = input_parameters->roi_height;
   float y_start_left = input_parameters->left_roi_start;
   float y_start_right = input_parameters->right_roi_start;
 
   // Extracts the left roi from the image.
-  Rect region_of_interest = Rect(0, y_start_left, image.cols, roi_height);
-  Mat image_roi_left(image, region_of_interest);
-  // Converts the roi to grayscale.
-  //cv::cvtColor(image_roi_left, image_roi_left, CV_BGR2GRAY);
+  Rect region_of_interest = Rect(0, y_start_left, source.cols, roi_height);
+  Mat image_roi_left(source, region_of_interest);
 
   // Extracts the right roi from the image.
-  region_of_interest = Rect(0, y_start_right, image.cols, roi_height);
-  Mat image_roi_right(image, region_of_interest);
-  // Converts the roi to grayscale.
-  //cv::cvtColor(image_roi_right, image_roi_right, CV_BGR2GRAY);
-
+  region_of_interest = Rect(0, y_start_right, source.cols, roi_height);
+  Mat image_roi_right(source, region_of_interest);
   // Writes the rois to file.
   string name = "roi_left_" + std::to_string(image_counter) + ".png";
   imwrite(name, image_roi_left);
@@ -62,15 +55,8 @@ int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
   imwrite(name, image_roi_right);
   image_counter++;
 
-  Mat intersections_left(image_roi_left.cols, image_roi_left.rows, CV_8UC1);
-  Mat intersections_right(image_roi_right.cols, image_roi_right.rows, CV_8UC1);
   vector<cv::Point3f> intersection_points_left;
   vector<cv::Point3f> intersection_points_right;
-
-  // Applies a threshold to extract the intersection points, so if a pixel
-  // intensity is less than or equal to 254, it is set to 0.
-  /*threshold(image_roi_left, intersections_left, 254, 255, 3);
-  threshold(image_roi_right, intersections_right, 254, 255, 3);*/
 
   // Stores the white pixels in a vector.
   LoadIntersectionPoints(image_roi_left, intersection_points_left);
@@ -149,29 +135,33 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
   for (int i = 0; i < intersection_points.size(); i++) {
     // The y coordinate of the pixel relative to the roi.
     pixel_position = intersection_points.at(i).y;
-    if (roi) {  // Left roi.
+    if (roi) {  // Left roi. TODO: sopra
       // The position of the current pixel relative to the entire screenshot.
       absolute_pixel_position = y_start_left + pixel_position;
+      //if(y_offset/10 == 4)
+      //cout << "absolute (left) " << absolute_pixel_position << endl;
       // The distance from the current pixel and the middle pixel.
       relative_pixel_position = y_middle - absolute_pixel_position;
+      //if(y_offset/10 == 4)
+      //cout << "relative (left) " << relative_pixel_position << endl;
     } else {  // Right roi.
       // The position of the current pixel relative to the entire screenshot.
       absolute_pixel_position = y_start_right + pixel_position;
+      //if(y_offset/10 == 22)
+      //cout << "absolute (right) " << absolute_pixel_position << endl;
       // The distance from the current pixel and the middle pixel.
-      relative_pixel_position = absolute_pixel_position - y_middle;
+      relative_pixel_position = absolute_pixel_position - y_middle; //+129 le porta alla stessa altezza
+      //if(y_offset/10 == 22)
+      //cout << "relative (right) " << relative_pixel_position << endl;
     }
     point.x = intersection_points.at(i).x;
     point.y = absolute_pixel_position;
     // Computes the Z coordinate using triangulation.
     point.z = baseline * focal_length / (focal_length * tan(alfa_rad) -
                                          relative_pixel_position * pixel_size);
-    // cout << "Coordinate punto che sta per essere convertito: (" << point.x <<
-    // ", " << point.y << ", " << point.z << ")" << endl;
     // Converts from pixel to world coordinates.
     ConvertCoordinates(point, intrinsics, input_parameters, y_offset);
-    point.y = point.y + y_offset;
-    // cout << "Coordinate punto che sta per essere inserito: (" << point.x <<
-    // ", " << point.y << ", " << point.z << ")" << endl;
+    point.y = point.y + y_offset;   
     point_cloud_points.push_back(point);
   }
 }
@@ -242,7 +232,7 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
   // which requires a rotation of 180 degrees around the x-axis to adjust it so
   // it points upwards.
   Mat rotation = Mat::eye(3, 3, CV_32F);
-  rotation.at<float>(0, 0) = cos(M_PI);
+  rotation.at<float>(0, 0) = 1;
   rotation.at<float>(1, 1) = cos(M_PI);
   rotation.at<float>(2, 2) = cos(M_PI);
   
@@ -251,8 +241,8 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
 
   // Converts the point coordinates using the camera intrinsics and extrinsics 
   // parameters.
-  Mat out = point.z * inverted_intrinsics * inverted_rotation * point_2D + camera_center;
-  //Mat out = point.z * inverted_intrinsics * point_2D + camera_center;
+  //Mat out = point.z * inverted_intrinsics * inverted_rotation * point_2D + camera_center;
+  Mat out = point.z * inverted_intrinsics * point_2D + camera_center;
   point.x = out.at<float>(0, 0);
   point.y = out.at<float>(0, 1);
   point.z = out.at<float>(0, 2);
