@@ -105,11 +105,16 @@ int Scanner(InputParameters* input_parameters) {
 
   // Number of iterations where no intersections have been found.
   int failed_intersections = 0;
+  bool check_laser_1 = false;
+  bool check_laser_2 = false;
+  int laser_1_counter = 0;
+  int laser_2_counter = 0;
   // Scans the object, moving along the y-axis, taking a screenshot of the scene
   // at each frame and processing it in order to build the point cloud. Stops
   // after no intersections have been found by both lasers for 10 consecutives
   // frames.
   // for(int k=0; k < 200; k++) {
+  // NOTA: left è ora laser_1, right è laser_2
   for (int k = 0; failed_intersections < 10; k++) {
     cout << "K: " << k << endl;
     // Translates the system by step_y millimeters along the Y axis.
@@ -122,30 +127,37 @@ int Scanner(InputParameters* input_parameters) {
     float laser_aperture = input_parameters->laser_aperture;
 
     // Origin coordinates of the lines forming the left laser plane.
-    osg::Vec3d start_left = osg::Vec3d(
+    osg::Vec3d start_laser_1 = osg::Vec3d(
         -camera_x, laser_distance + k * step_y - camera_y, -camera_z);
     // Array used to store left laser's intersection points.
-    std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_left;
+    std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_1;
 
     // Computes the intersections of the left laser plane with the model.
-    ComputeIntersections(start_left, step_x, threshold, model, laser_incline,
-                         laser_aperture, false, &intersections_left);
+    ComputeIntersections(start_laser_1, step_x, threshold, model, laser_incline,
+                         laser_aperture, false, &intersections_laser_1);
 
     // Origin coordinates of the lines forming the right laser plane.
-    osg::Vec3d start_right = osg::Vec3d(
+    osg::Vec3d start_laser_2 = osg::Vec3d(
         -camera_x, -laser_distance + k * step_y - camera_y, -camera_z);
     // Array used to store right laser's intersection points.
-    std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_right;
+    std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_2;
 
     // Computes the intersections of the right laser plane with the model.
-    ComputeIntersections(start_right, step_x, threshold, model, laser_incline,
-                         laser_aperture, true, &intersections_right);
+    ComputeIntersections(start_laser_2, step_x, threshold, model, laser_incline,
+                         laser_aperture, true, &intersections_laser_2);
     // cout<<"intersections_left.size() "<<intersections_right.size()<<"
     // intersections_right.size() "<<intersections_right.size()<<endl;
 
+    if (!check_laser_1 && intersections_laser_1.size() != 0){
+        check_laser_1 = true;
+    }
+    if (!check_laser_2 && intersections_laser_2.size() != 0){
+        check_laser_2 = true;
+    }
+    
     // Increases the counter if no intersections have been found, resets it
     // otherwise.
-    if (intersections_left.size() == 0 && intersections_right.size() == 0) {
+    if (intersections_laser_1.size() == 0 && intersections_laser_2.size() == 0) {
       // if(intersections_left.size() == 0 )
       // if(intersections_right.size() == 0 )
       failed_intersections++;
@@ -154,8 +166,8 @@ int Scanner(InputParameters* input_parameters) {
     }
 
     // Displays the intersections on the model.
-    ShowIntersections(intersections_left, intersection_line_geode);
-    ShowIntersections(intersections_right, intersection_line_geode);
+    ShowIntersections(intersections_laser_1, intersection_line_geode);
+    ShowIntersections(intersections_laser_2, intersection_line_geode);
     
     Mat intrinsics = Mat::eye(3, 3, CV_32F);
     intrinsics.at<float>(0, 0) = intrinsics_matrix(0, 0);
@@ -163,35 +175,41 @@ int Scanner(InputParameters* input_parameters) {
     intrinsics.at<float>(1, 1) = intrinsics_matrix(1, 1);
     intrinsics.at<float>(1, 2) = intrinsics_matrix(1, 2);
     intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
-    Mat scene_right = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1) ;
-    if(intersections_right.size()!=0)
-        ProjectToImagePlane(intersections_right, intrinsics, input_parameters, -k*step_y, scene_right);
-    Mat scene_left = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
-    if(intersections_left.size()!=0)
-        ProjectToImagePlane(intersections_left, intrinsics, input_parameters, -k*step_y, scene_left);
+    Mat scene_laser_2 = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1) ;
+    if(intersections_laser_2.size()!=0)
+        ProjectToImagePlane(intersections_laser_2, intrinsics, input_parameters, -k*step_y, scene_laser_2);
+    Mat scene_laser_1 = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
+    if(intersections_laser_1.size()!=0)
+        ProjectToImagePlane(intersections_laser_1, intrinsics, input_parameters, -k*step_y, scene_laser_1);
     
     // Advances to the next frame and takes the screenshot of the scene using
     // the previously defined callback.
     viewer.frame();
     
     Mat output = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
-    bitwise_or(scene_right, scene_left, output);
+    bitwise_or(scene_laser_2, scene_laser_1, output);
     
     // Processes the screenshot, extracting the points that will form the point
     // cloud.
-    if(intersections_right.size()!=0 || intersections_left.size()!=0)
-        ImageProcessing(output, intrinsics_matrix, input_parameters, k * step_y,
-                    point_cloud_points);
-    if(k==2) 
-      getchar();
+    if(intersections_laser_2.size()!=0 || intersections_laser_1.size()!=0)
+        ImageProcessing(output, intrinsics_matrix, input_parameters, 
+                laser_1_counter * step_y, laser_2_counter * step_y, point_cloud_points);
+    //if(k==2) 
+    //  getchar();
     cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
 
     // Removes the previously found intersection points from the intersection
     // geode so that they will not be displayed in the following iterations.
     intersection_line_geode->removeDrawables(
-        1, intersections_left.size() + intersections_right.size());
+        1, intersections_laser_1.size() + intersections_laser_2.size());
     // intersection_line_geode->removeDrawables (1, intersections_left.size());
     // intersection_line_geode->removeDrawables (1, intersections_right.size());
+    if(check_laser_1)
+        laser_1_counter++;
+    if(check_laser_2)
+        laser_2_counter++;
+    //cout<<"laser_1_counter "<<laser_1_counter<<endl;
+    //cout<<"laser_2_counter "<<laser_2_counter<<endl;
   }
 
   // Builds and shows the point cloud using the points found.
@@ -360,7 +378,7 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
   // Reads intrinsics.
   if (node->children.at(0)->properties["Rows"] != std::to_string(3) ||
       node->children.at(0)->properties["Cols"] != std::to_string(3)) {
-    std::cout << "Matrice dei parametri intrinseci errata" << std::endl;
+    std::cout << "Error in intrinsics matrix." << std::endl;
     return false;
   }
   for (int i = 0; i < 3; i++) {
@@ -373,7 +391,7 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
   // Reads distortion parameters.
   if (node->children.at(1)->properties["Rows"] != std::to_string(1) ||
       node->children.at(1)->properties["Cols"] != std::to_string(5)) {
-    std::cout << "Matrice dei coefficienti di distorsione errata" << std::endl;
+    std::cout << "Error in distortion vector." << std::endl;
     return false;
   }
   for (int i = 0; i < 5; i++) {

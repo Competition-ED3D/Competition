@@ -26,12 +26,12 @@ using std::endl;
 using std::vector;
 
 int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
-                    struct InputParameters* input_parameters, float y_offset,
+                    struct InputParameters* input_parameters, float offset_1, float offset_2,
                     vector<Point3f>& point_cloud_points);
 void LoadIntersectionPoints(Mat intersections,
                             vector<Point3f>& intersection_points);
 void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics,
-                  struct InputParameters* input_parameters, float y_offset,
+                  struct InputParameters* input_parameters, float y_offset, float secondary_offset,
                   bool roi, vector<Point3f>& point_cloud_points);
 void BuildPointCloud(vector<Point3f> point_cloud_points);
 void ConvertCoordinates(Point3f& point, Mat intrinsics,
