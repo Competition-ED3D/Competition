@@ -21,7 +21,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
       fs["z_camera_coord"].empty() || fs["camera_width"].empty() ||
       fs["camera_height"].empty() || fs["pixel_size"].empty() ||
       fs["focal_length"].empty() || fs["roi_height"].empty() ||
-      fs["roi_1_start"].empty() || fs["roi_2_start"].empty() ||
+      fs["roi_top_start"].empty() || fs["roi_bottom_start"].empty() ||
       fs["laser_distance"].empty() || fs["laser_incline"].empty() ||
       fs["laser_aperture"].empty()) {
     cout << "Syntax error in input file" << endl;
@@ -35,7 +35,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
       fs["z_camera_coord"].isNone() || fs["camera_width"].isNone() ||
       fs["camera_height"].isNone() || fs["pixel_size"].isNone() ||
       fs["focal_length"].isNone() || fs["roi_height"].isNone() ||
-      fs["roi_1_start"].isNone() || fs["roi_2_start"].isNone() ||
+      fs["roi_top_start"].isNone() || fs["roi_bottom_start"].isNone() ||
       fs["laser_distance"].isNone() || fs["laser_incline"].isNone() ||
       fs["laser_aperture"].isNone()) {
     cout << "Missing value in input file" << endl;
@@ -66,8 +66,8 @@ bool InputParser(string filename, InputParameters *input_parameters) {
   fs["roi_height"] >> input_parameters->roi_height;
 
   // The y coordinates where the two rois start.
-  fs["roi_1_start"] >> input_parameters->roi_1_start;
-  fs["roi_2_start"] >> input_parameters->roi_2_start;
+  fs["roi_top_start"] >> input_parameters->roi_top_start;
+  fs["roi_bottom_start"] >> input_parameters->roi_bottom_start;
 
   // The distance between the camera and the laser (baseline).
   fs["laser_distance"] >> input_parameters->laser_distance;
