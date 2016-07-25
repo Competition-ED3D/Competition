@@ -157,7 +157,7 @@ void BuildPointCloud(vector<Point3f> point_cloud_points) {
     output_point.g = 0;
     output_point.b = 0;
     // Sets XYZ coordinates of the point.
-    output_point.x = point_cloud_points.at(i).x;
+    output_point.x = -point_cloud_points.at(i).x;
     output_point.y = point_cloud_points.at(i).y;
     output_point.z = point_cloud_points.at(i).z;
     output->points.push_back(output_point);
@@ -208,9 +208,19 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
 
   Mat inverted_intrinsics = intrinsics.inv();
 
+  // Rotation matrix. The camera has the z-axis pointing downward, which 
+  // requires a rotation of 180 degrees around the x-axis to adjust it so
+  // it points upwards.
+  Mat rotation = Mat::eye(3, 3, CV_32F);
+  rotation.at<float>(0, 0) = 1;
+  rotation.at<float>(1, 1) = cos(M_PI);
+  rotation.at<float>(2, 2) = cos(M_PI);
+  Mat inverted_rotation = rotation.inv();
+  
   // Converts the point coordinates using the camera intrinsics and extrinsics 
   // parameters.
   Mat out = point.z * inverted_intrinsics * point_2D + camera_center;
+  out = inverted_rotation * out;
   point.x = out.at<float>(0, 0);
   point.y = out.at<float>(0, 1);
   point.z = out.at<float>(0, 2);
