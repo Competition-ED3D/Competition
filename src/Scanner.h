@@ -50,7 +50,7 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
                       std::vector<double>& distortion_matrix);
 void ProjectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
                          Mat intrinsics, struct InputParameters* input_parameters, 
-                         float step, Mat& output);
+                         Mat& output);
 struct MyReadCallback : public osgUtil::IntersectionVisitor::ReadCallback {
   virtual osg::Node* readNodeFile(const std::string& filename) {
     return osgDB::readNodeFile(filename);

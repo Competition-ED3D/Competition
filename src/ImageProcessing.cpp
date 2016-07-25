@@ -19,8 +19,8 @@ int image_counter = 0;
 // Output parameters:
 // point_cloud_points: the vector to fill with the 3D points.
 int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
-                    struct InputParameters* input_parameters, float offset_1,
-                    float offset_2, vector<Point3f>& point_cloud_points) {
+                    struct InputParameters* input_parameters, 
+                    vector<Point3f>& point_cloud_points) {
   // Defines the Mat with intrinsics parameters.
   Mat intrinsics = Mat::eye(3, 3, CV_32F);
   intrinsics.at<float>(0, 0) = intrinsics_matrix(0, 0);
@@ -28,14 +28,6 @@ int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
   intrinsics.at<float>(1, 1) = intrinsics_matrix(1, 1);
   intrinsics.at<float>(1, 2) = intrinsics_matrix(1, 2);
   intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
-
-  // Flips the image vertically.
-  //flip(image, image, 0);
-
-  //if(y_offset/10 == 1)
-  //  imwrite("processing1.png", source);
-  //if(y_offset/10 == 19)
-  //  imwrite("processing19.png", source);
   
   float roi_height = input_parameters->roi_height;
   float y_start_1 = input_parameters->roi_1_start;
@@ -62,17 +54,11 @@ int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
   LoadIntersectionPoints(image_roi_1, intersection_points_1);
   LoadIntersectionPoints(image_roi_2, intersection_points_2);
   
-  cout<<"intersection_points_1.size() "<<intersection_points_1.size()<<endl;
-  cout<<"intersection_points_2.size() "<<intersection_points_2.size()<<endl;
-  
-  //cout<<"right offset "<<offset_2<<endl;
-  //cout<<"left offset "<<offset_1<<endl;
-
   // Converts the 2D pixel to 3D points.
-  InsertPoints(intersection_points_1, intrinsics, input_parameters, offset_2,
-                offset_1, LASER_1, point_cloud_points);
-  InsertPoints(intersection_points_2, intrinsics, input_parameters,
-                offset_1, offset_2, LASER_2, point_cloud_points);
+  InsertPoints(intersection_points_1, intrinsics, input_parameters, LASER_1, 
+               point_cloud_points);
+  InsertPoints(intersection_points_2, intrinsics, input_parameters, LASER_2, 
+               point_cloud_points);
 
   return 0;
 }
@@ -116,16 +102,15 @@ void LoadIntersectionPoints(Mat intersections,
 // Output parameters:
 // point_cloud_points: the vector with the points in world coordinates.
 void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
-                  struct InputParameters* input_parameters, float y_offset, float secondary_offset,
-                  bool roi, vector<Point3f>& point_cloud_points) {
+                  struct InputParameters* input_parameters, bool roi, 
+                  vector<Point3f>& point_cloud_points) {
   float pixel_size = input_parameters->pixel_size;
   float baseline = input_parameters->laser_distance;
   float focal_length = input_parameters->focal_length;
   float y_start_1 = input_parameters->roi_1_start;
   float y_start_2 = input_parameters->roi_2_start;
-  float height = input_parameters->camera_height;
-  // The y coordinate of the middle pixel in the image.
-  int y_middle = height / 2;
+  // The y coordinate of the principal point.
+  int y_middle = intrinsics.at<float>(1, 2);
   float alpha = 90 - input_parameters->laser_incline;
   // Converts the angle from degrees to radians.
   float alpha_rad = 2 * M_PI * alpha / 360;
@@ -142,23 +127,15 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
     // The y coordinate of the pixel relative to the roi.
     pixel_position = intersection_points.at(i).y;
     if (roi) {  // Left roi. TODO: sopra - LASER 1
-      // The position of the current pixel relative to the entire screenshot.
+      // The position in the y-axis of the current pixel relative to the entire screenshot.
       absolute_pixel_position = y_start_1 + pixel_position;
-      //if(y_offset/10 == 4)
-      //cout << "absolute (left) " << absolute_pixel_position << endl;
-      // The distance from the current pixel and the middle pixel.
+      // The distance in the y-axis from the current pixel and the principal point.
       relative_pixel_position = y_middle - absolute_pixel_position;
-      //if(y_offset/10 == 4)
-      //cout << "relative (left) " << relative_pixel_position << endl;
     } else {  // Right roi. LASER 2
-      // The position of the current pixel relative to the entire screenshot.
+      // The position in the y-axis of the current pixel relative to the entire screenshot.
       absolute_pixel_position = y_start_2 + pixel_position;
-      //if(y_offset/10 == 22)
-      //cout << "absolute (right) " << absolute_pixel_position << endl;
-      // The distance from the current pixel and the middle pixel.
-      relative_pixel_position = absolute_pixel_position - y_middle; //+129 le porta alla stessa altezza
-      //if(y_offset/10 == 22)
-      //cout << "relative (right) " << relative_pixel_position << endl;
+      // The distance in the y-axis from the current pixel and the principal point.
+      relative_pixel_position = absolute_pixel_position - y_middle; 
     }
     point.x = intersection_points.at(i).x;
     point.y = absolute_pixel_position;
@@ -167,18 +144,8 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
                                          relative_pixel_position * pixel_size);
     
     // Converts from pixel to world coordinates.
-    ConvertCoordinates(point, intrinsics, input_parameters, y_offset);
-    //if(roi)
-    // if: caso base, quando la funzione sta analizzando il laser che ha toccato
-    // il modello per primo. Se entrambi i lasertoccano il modello per la prima
-    // volta alla stessa iterazione, non si entra mai nell'else.
-    if(y_offset >= secondary_offset){
-        //cout<<"point.y left "<<point.y<<endl;
-        point.y = point.y - y_offset;
-    } else { // La funzione sta analizzando il laser che ha toccato per ultimo.
-        //cout<<"point.y right "<<point.y<<endl;
-        point.y = point.y - secondary_offset; // -offset del laser che ha toccato il laser per primo
-    }
+    ConvertCoordinates(point, intrinsics, input_parameters);
+
     point_cloud_points.push_back(point);
   }
 }
@@ -235,8 +202,7 @@ void BuildPointCloud(vector<Point3f> point_cloud_points) {
 // y_offset: the offset describing how much the two lasers and the camera has
 // moved on the y-axis.
 void ConvertCoordinates(Point3f& point, Mat intrinsics,
-                        struct InputParameters* input_parameters,
-                        float y_offset) {
+                        struct InputParameters* input_parameters) {
   float point_coord[] = {point.x, point.y, 1};
   // The current absolute position of the camera.
   float camera_coord[] = {input_parameters->x_camera_absolute,
@@ -247,20 +213,10 @@ void ConvertCoordinates(Point3f& point, Mat intrinsics,
   Mat point_2D = Mat(3, 1, CV_32F, point_coord);
   Mat camera_center = Mat(3, 1, CV_32F, camera_coord);
 
-  // Rotation matrix. OpenSceneGraph's camera has the z-axis pointing downward, 
-  // which requires a rotation of 180 degrees around the x-axis to adjust it so
-  // it points upwards.
-  Mat rotation = Mat::eye(3, 3, CV_32F);
-  rotation.at<float>(0, 0) = 1;
-  rotation.at<float>(1, 1) = cos(M_PI);
-  rotation.at<float>(2, 2) = cos(M_PI);
-  
-  Mat inverted_rotation = rotation.inv();
   Mat inverted_intrinsics = intrinsics.inv();
 
   // Converts the point coordinates using the camera intrinsics and extrinsics 
   // parameters.
-  //Mat out = point.z * inverted_intrinsics * inverted_rotation * point_2D + camera_center;
   Mat out = point.z * inverted_intrinsics * point_2D + camera_center;
   point.x = out.at<float>(0, 0);
   point.y = out.at<float>(0, 1);

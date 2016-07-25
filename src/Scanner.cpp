@@ -105,10 +105,6 @@ int Scanner(InputParameters* input_parameters) {
 
   // Number of iterations where no intersections have been found.
   int failed_intersections = 0;
-  bool check_laser_1 = false;
-  bool check_laser_2 = false;
-  int laser_1_counter = 0;
-  int laser_2_counter = 0;
   // Scans the object, moving along the y-axis, taking a screenshot of the scene
   // at each frame and processing it in order to build the point cloud. Stops
   // after no intersections have been found by both lasers for 10 consecutives
@@ -120,7 +116,8 @@ int Scanner(InputParameters* input_parameters) {
     // Translates the system by step_y millimeters along the Y axis.
     cameraTrans.makeTranslate(camera_x, camera_y - k * step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
-
+    input_parameters->y_camera_absolute = camera_y -  k * step_y;
+    
     // Initializes laser parameters.
     float laser_distance = input_parameters->laser_distance;
     float laser_incline = input_parameters->laser_incline;
@@ -147,13 +144,6 @@ int Scanner(InputParameters* input_parameters) {
                          laser_aperture, true, &intersections_laser_2);
     // cout<<"intersections_left.size() "<<intersections_right.size()<<"
     // intersections_right.size() "<<intersections_right.size()<<endl;
-
-    if (!check_laser_1 && intersections_laser_1.size() != 0){
-        check_laser_1 = true;
-    }
-    if (!check_laser_2 && intersections_laser_2.size() != 0){
-        check_laser_2 = true;
-    }
     
     // Increases the counter if no intersections have been found, resets it
     // otherwise.
@@ -177,10 +167,10 @@ int Scanner(InputParameters* input_parameters) {
     intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
     Mat scene_laser_2 = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1) ;
     if(intersections_laser_2.size()!=0)
-        ProjectToImagePlane(intersections_laser_2, intrinsics, input_parameters, -k*step_y, scene_laser_2);
+        ProjectToImagePlane(intersections_laser_2, intrinsics, input_parameters, scene_laser_2);
     Mat scene_laser_1 = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
     if(intersections_laser_1.size()!=0)
-        ProjectToImagePlane(intersections_laser_1, intrinsics, input_parameters, -k*step_y, scene_laser_1);
+        ProjectToImagePlane(intersections_laser_1, intrinsics, input_parameters, scene_laser_1);
     
     // Advances to the next frame and takes the screenshot of the scene using
     // the previously defined callback.
@@ -193,9 +183,7 @@ int Scanner(InputParameters* input_parameters) {
     // cloud.
     if(intersections_laser_2.size()!=0 || intersections_laser_1.size()!=0)
         ImageProcessing(output, intrinsics_matrix, input_parameters, 
-                laser_1_counter * step_y, laser_2_counter * step_y, point_cloud_points);
-    //if(k==2) 
-    //  getchar();
+                        point_cloud_points);
     cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
 
     // Removes the previously found intersection points from the intersection
@@ -204,12 +192,6 @@ int Scanner(InputParameters* input_parameters) {
         1, intersections_laser_1.size() + intersections_laser_2.size());
     // intersection_line_geode->removeDrawables (1, intersections_left.size());
     // intersection_line_geode->removeDrawables (1, intersections_right.size());
-    if(check_laser_1)
-        laser_1_counter++;
-    if(check_laser_2)
-        laser_2_counter++;
-    //cout<<"laser_1_counter "<<laser_1_counter<<endl;
-    //cout<<"laser_2_counter "<<laser_2_counter<<endl;
   }
 
   // Builds and shows the point cloud using the points found.
@@ -403,12 +385,12 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
 }
 
 void ProjectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
- Mat intrinsics, struct InputParameters* input_parameters, float step, Mat& output) {
+ Mat intrinsics, struct InputParameters* input_parameters, Mat& output) {
     Mat tVec(3, 1, DataType<float>::type); // Translation vector
     Mat rVec(3, 1, DataType<float>::type); // Rotation vector
      
     tVec.at<float>(0) = input_parameters->x_camera_absolute;
-    tVec.at<float>(1) = input_parameters->y_camera_absolute + step;
+    tVec.at<float>(1) = input_parameters->y_camera_absolute;
     tVec.at<float>(2) = input_parameters->z_camera_absolute;
     rVec.at<float>(0) = 0;
     rVec.at<float>(1) = 0;
