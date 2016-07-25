@@ -1,7 +1,6 @@
 FILE(REMOVE_RECURSE
   "CMakeFiles/main.dir/src/main.cpp.o"
   "CMakeFiles/main.dir/src/Scanner.cpp.o"
-  "CMakeFiles/main.dir/src/ScreenCapture.cpp.o"
   "CMakeFiles/main.dir/src/ImageProcessing.cpp.o"
   "main.pdb"
   "main"

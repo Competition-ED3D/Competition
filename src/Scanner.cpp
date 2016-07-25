@@ -71,7 +71,7 @@ int Scanner(InputParameters* input_parameters) {
 
   // Initializes the camera used to take snapshots of the scene with the
   // specified resolution and intrinsics.
-  InitializeCamera(camera, width, height, intrinsics_matrix);
+//  InitializeCamera(camera, width, height, intrinsics_matrix);
 
   // Adds the camera to the viewer.
   viewer.addSlave(camera.get(), osg::Matrixd(), osg::Matrixd());
@@ -95,10 +95,10 @@ int Scanner(InputParameters* input_parameters) {
 
   // Sets the camera callback so that the screenshot of the scene is taken after
   // the all the scene drawing and post render operations have been completed.
-  ScreenCapture* sc = (ScreenCapture*)camera.get()->getFinalDrawCallback();
+  //ScreenCapture* sc = (ScreenCapture*)camera.get()->getFinalDrawCallback();
   // Data structure to store the screenshots in.
-  osg::Image* screenshot =
-      (sc->getContextData(camera.get()->getGraphicsContext()))->getImage();
+  //osg::Image* screenshot =
+  //    (sc->getContextData(camera.get()->getGraphicsContext()))->getImage();
 
   // Vector to store the point cloud points in.
   vector<Point3f> point_cloud_points;

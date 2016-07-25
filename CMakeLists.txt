@@ -22,14 +22,12 @@ find_package( PCL 1.2 REQUIRED )
 
 SET(HEADERS 
    src/Scanner.h
-   src/ScreenCapture.h
    src/ImageProcessing.h
 )
 
 SET(SOURCES
 src/main.cpp
 src/Scanner.cpp
-src/ScreenCapture.cpp
 src/ImageProcessing.cpp
 )
 

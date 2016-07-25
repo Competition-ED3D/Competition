@@ -1,8 +1,21 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
-#include "ScreenCapture.h"
+#include "ImageProcessing.h"
 
+#include <osg/Group>
+#include <osg/Geode>
+#include <osg/Geometry>
+#include <osg/LineSegment>
+#include <osg/io_utils>
+#include <osgUtil/IntersectionVisitor>
+#include <osgUtil/LineSegmentIntersector>
+#include <osg/LineWidth>
+#include <osg/Point>
+#include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
+#include <osg/Node>
+#include <osgDB/ReadFile>
 #include <osgDB/Registry>
 #include <osgDB/XmlParser>
 
@@ -51,10 +64,5 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
 void ProjectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
                          Mat intrinsics, struct InputParameters* input_parameters, 
                          Mat& output);
-struct MyReadCallback : public osgUtil::IntersectionVisitor::ReadCallback {
-  virtual osg::Node* readNodeFile(const std::string& filename) {
-    return osgDB::readNodeFile(filename);
-  }
-};
 
 #endif /* SCANNER_H */
