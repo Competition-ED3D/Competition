@@ -26,28 +26,28 @@ int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
   intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
   
   float roi_height = input_parameters->roi_height;
-  float y_start_1 = input_parameters->roi_top_start;
-  float y_start_2 = input_parameters->roi_bottom_start;
+  float y_start_top = input_parameters->roi_top_start;
+  float y_start_bottom = input_parameters->roi_bottom_start;
 
   // Extracts the top roi from the image.
-  Rect region_of_interest = Rect(0, y_start_1, source.cols, roi_height);
+  Rect region_of_interest = Rect(0, y_start_top, source.cols, roi_height);
   Mat image_roi_top(source, region_of_interest);
 
   // Extracts the bottom roi from the image.
-  region_of_interest = Rect(0, y_start_2, source.cols, roi_height);
+  region_of_interest = Rect(0, y_start_bottom, source.cols, roi_height);
   Mat image_roi_bottom(source, region_of_interest);
 
-  vector<cv::Point3f> intersection_points_1;
-  vector<cv::Point3f> intersection_points_2;
+  vector<cv::Point3f> intersection_points_top;
+  vector<cv::Point3f> intersection_points_bottom;
 
   // Stores the white pixels (that is the intersection points) in a vector.
-  LoadIntersectionPoints(image_roi_top, intersection_points_1);
-  LoadIntersectionPoints(image_roi_bottom, intersection_points_2);
+  LoadIntersectionPoints(image_roi_top, intersection_points_top);
+  LoadIntersectionPoints(image_roi_bottom, intersection_points_bottom);
   
   // Converts the 2D pixel to 3D points.
-  InsertPoints(intersection_points_1, intrinsics, input_parameters, LASER_1, 
+  InsertPoints(intersection_points_top, intrinsics, input_parameters, LASER_1, 
                point_cloud_points);
-  InsertPoints(intersection_points_2, intrinsics, input_parameters, LASER_2, 
+  InsertPoints(intersection_points_bottom, intrinsics, input_parameters, LASER_2, 
                point_cloud_points);
 
   return 0;
