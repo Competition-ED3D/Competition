@@ -43,8 +43,8 @@ struct InputParameters {
   float focal_length;
 
   float roi_height;
-  float roi_1_start;
-  float roi_2_start;
+  float roi_top_start;
+  float roi_bottom_start;
 
   float laser_distance;
   float laser_incline;
