@@ -17,4 +17,6 @@
 	<laser_distance>500</laser_distance>
 	<laser_incline>70</laser_incline>
 	<laser_aperture>45</laser_aperture>
+	<factory_limitations>1</factory_limitations>
+	<save_point_cloud>1</save_point_cloud>
 </opencv_storage>

@@ -1,12 +1,16 @@
 #include "Scanner.h"
 
+#define LASER_1 true
+#define LASER_2 false
+
 // This function simulates the laser scanning process of the given model: the
-// system (two lasers and a camera) scans the object moving along the Y-axis and
+// system (two lasers and a camera) scans the object moving along the Y axis and
 // reconstructs a three-dimensional point cloud.
 // Returns 0 if successful.
 //
 // Input parameters:
-// input_parameters: struct containing the input parameters.
+// input_parameters: struct containing the input parameters specified by the
+// user.
 int Scanner(InputParameters* input_parameters) {
   // Initializes OpenSceneGraph nodes.
   osg::Group* root = new osg::Group();
@@ -61,20 +65,10 @@ int Scanner(InputParameters* input_parameters) {
   viewer.realize();
 
   // Reads the camera resolution and matrix from the input files.
-  unsigned int width = input_parameters->camera_width;
-  unsigned int height = input_parameters->camera_height;
-  osg::ref_ptr<osg::Camera> camera = new osg::Camera;
   osg::Matrixf intrinsics_matrix;
-  std::vector<double> distortion_matrix;
+  vector<double> distortion_matrix;
   string filename = input_parameters->intrinsics_filename;
   IntrinsicsParser(filename, intrinsics_matrix, distortion_matrix);
-
-  // Initializes the camera used to take snapshots of the scene with the
-  // specified resolution and intrinsics.
-//  InitializeCamera(camera, width, height, intrinsics_matrix);
-
-  // Adds the camera to the viewer.
-  viewer.addSlave(camera.get(), osg::Matrixd(), osg::Matrixd());
 
   // Defines the distance (step-y) the system will cover along the y-axis
   // between each frame of the camera.
@@ -82,7 +76,7 @@ int Scanner(InputParameters* input_parameters) {
   float fps = input_parameters->fps;
   float step_y = scanning_speed / fps;
 
-  // Distance between the intersection lines forming the laser plane that
+  // Distance between the single intersection lines forming the laser plane that
   // intersects the model.
   float step_x = 1;
   // Maximum distance threshold for intersection points belonging to the same
@@ -91,33 +85,25 @@ int Scanner(InputParameters* input_parameters) {
   float threshold = EuclideanDistance(osg::Vec3d(0, 0, 0),
                                       osg::Vec3d(step_x, step_x, step_x));
 
-  viewer.frame();
-
-  // Sets the camera callback so that the screenshot of the scene is taken after
-  // the all the scene drawing and post render operations have been completed.
-  //ScreenCapture* sc = (ScreenCapture*)camera.get()->getFinalDrawCallback();
-  // Data structure to store the screenshots in.
-  //osg::Image* screenshot =
-  //    (sc->getContextData(camera.get()->getGraphicsContext()))->getImage();
-
   // Vector to store the point cloud points in.
   vector<Point3f> point_cloud_points;
 
-  // Number of iterations where no intersections have been found.
+  // Number of consecutive iterations where no intersections have been found.
   int failed_intersections = 0;
-  // Scans the object, moving along the y-axis, taking a screenshot of the scene
-  // at each frame and processing it in order to build the point cloud. Stops
-  // after no intersections have been found by both lasers for 10 consecutives
-  // frames.
-  // for(int k=0; k < 200; k++) {
-  // NOTA: left è ora laser_1, right è laser_2
-  for (int k = 0; failed_intersections < 10; k++) {
-    cout << "K: " << k << endl;
-    // Translates the system by step_y millimeters along the Y axis.
-    cameraTrans.makeTranslate(camera_x, camera_y - k * step_y, camera_z);
+
+  // Scans the object, moving along the y-axis, analyzing the intersections
+  // lines at each frame and processing it in order to build the point cloud.
+  // Stops after no intersections have been found by both lasers for ten
+  // consecutive frames.
+  for (int i = 0; failed_intersections < 10; i++) {
+    cout << "Iteration #" << i << endl;
+    // Translates the system by number of iterations * step_y millimeters along
+    // the Y axis.
+    cameraTrans.makeTranslate(camera_x, camera_y - i * step_y, camera_z);
     viewer.getCamera()->setViewMatrix(cameraTrans);
-    input_parameters->y_camera_absolute = camera_y -  k * step_y;
-    
+    // Updates camera position.
+    input_parameters->y_camera_absolute = camera_y - i * step_y;
+
     // Initializes laser parameters.
     float laser_distance = input_parameters->laser_distance;
     float laser_incline = input_parameters->laser_incline;
@@ -125,31 +111,28 @@ int Scanner(InputParameters* input_parameters) {
 
     // Origin coordinates of the lines forming the left laser plane.
     osg::Vec3d start_laser_1 = osg::Vec3d(
-        -camera_x, laser_distance + k * step_y - camera_y, -camera_z);
+        -camera_x, laser_distance + i * step_y - camera_y, -camera_z);
     // Array used to store left laser's intersection points.
-    std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_1;
+    vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_1;
 
     // Computes the intersections of the left laser plane with the model.
     ComputeIntersections(start_laser_1, step_x, threshold, model, laser_incline,
-                         laser_aperture, false, &intersections_laser_1);
+                         laser_aperture, LASER_1, &intersections_laser_1);
 
     // Origin coordinates of the lines forming the right laser plane.
     osg::Vec3d start_laser_2 = osg::Vec3d(
-        -camera_x, -laser_distance + k * step_y - camera_y, -camera_z);
+        -camera_x, -laser_distance + i * step_y - camera_y, -camera_z);
     // Array used to store right laser's intersection points.
-    std::vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_2;
+    vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_2;
 
     // Computes the intersections of the right laser plane with the model.
     ComputeIntersections(start_laser_2, step_x, threshold, model, laser_incline,
-                         laser_aperture, true, &intersections_laser_2);
-    // cout<<"intersections_left.size() "<<intersections_right.size()<<"
-    // intersections_right.size() "<<intersections_right.size()<<endl;
-    
+                         laser_aperture, LASER_2, &intersections_laser_2);
+
     // Increases the counter if no intersections have been found, resets it
     // otherwise.
-    if (intersections_laser_1.size() == 0 && intersections_laser_2.size() == 0) {
-      // if(intersections_left.size() == 0 )
-      // if(intersections_right.size() == 0 )
+    if (intersections_laser_1.size() == 0 &&
+        intersections_laser_2.size() == 0) {
       failed_intersections++;
     } else {
       failed_intersections = 0;
@@ -158,44 +141,52 @@ int Scanner(InputParameters* input_parameters) {
     // Displays the intersections on the model.
     ShowIntersections(intersections_laser_1, intersection_line_geode);
     ShowIntersections(intersections_laser_2, intersection_line_geode);
-    
+
+    // Loads intrinsics into an OpenCV matrix.
     Mat intrinsics = Mat::eye(3, 3, CV_32F);
     intrinsics.at<float>(0, 0) = intrinsics_matrix(0, 0);
     intrinsics.at<float>(0, 2) = intrinsics_matrix(0, 2);
     intrinsics.at<float>(1, 1) = intrinsics_matrix(1, 1);
     intrinsics.at<float>(1, 2) = intrinsics_matrix(1, 2);
     intrinsics.at<float>(2, 2) = intrinsics_matrix(2, 2);
-    Mat scene_laser_2 = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1) ;
-    if(intersections_laser_2.size()!=0)
-        ProjectToImagePlane(intersections_laser_2, intrinsics, input_parameters, scene_laser_2);
-    Mat scene_laser_1 = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
-    if(intersections_laser_1.size()!=0)
-        ProjectToImagePlane(intersections_laser_1, intrinsics, input_parameters, scene_laser_1);
-    
-    // Advances to the next frame and takes the screenshot of the scene using
-    // the previously defined callback.
+
+    // Projects the single intersection lines on one image plane each.
+    Mat scene_laser_1 = Mat::zeros(input_parameters->camera_height,
+                                   input_parameters->camera_width, CV_8UC1);
+    if (intersections_laser_1.size() != 0)
+      ProjectToImagePlane(intersections_laser_1, intrinsics, input_parameters,
+                          scene_laser_1);
+
+    Mat scene_laser_2 = Mat::zeros(input_parameters->camera_height,
+                                   input_parameters->camera_width, CV_8UC1);
+    if (intersections_laser_2.size() != 0)
+      ProjectToImagePlane(intersections_laser_2, intrinsics, input_parameters,
+                          scene_laser_2);
+
+    // Merges the two image planes into a single one.
+    Mat output = Mat::zeros(input_parameters->camera_height,
+                            input_parameters->camera_width, CV_8UC1);
+    bitwise_or(scene_laser_1, scene_laser_2, output);
+
+    // Advances to the next frame.
     viewer.frame();
-    
-    Mat output = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
-    bitwise_or(scene_laser_2, scene_laser_1, output);
-    
-    // Processes the screenshot, extracting the points that will form the point
+
+    // Processes the image, extracting the 3D points that will form the point
     // cloud.
-    if(intersections_laser_2.size()!=0 || intersections_laser_1.size()!=0)
-        ImageProcessing(output, intrinsics_matrix, input_parameters, 
-                        point_cloud_points);
-    cout << "point_cloud_points.size(): " << point_cloud_points.size() << endl;
+    if (intersections_laser_2.size() != 0 || intersections_laser_1.size() != 0)
+      ImageProcessing(output, intrinsics_matrix, input_parameters,
+                      point_cloud_points);
+    cout << "Point cloud size: " << point_cloud_points.size() << " points."
+         << endl;
 
     // Removes the previously found intersection points from the intersection
     // geode so that they will not be displayed in the following iterations.
     intersection_line_geode->removeDrawables(
         1, intersections_laser_1.size() + intersections_laser_2.size());
-    // intersection_line_geode->removeDrawables (1, intersections_left.size());
-    // intersection_line_geode->removeDrawables (1, intersections_right.size());
   }
 
-  // Builds and shows the point cloud using the points found.
-  BuildPointCloud(point_cloud_points);
+  // Builds and shows the point cloud using the previously computed points.
+  BuildPointCloud(point_cloud_points, input_parameters);
 
   return 0;
 }
@@ -208,23 +199,23 @@ int Scanner(InputParameters* input_parameters) {
 // start: origin coordinates of the lines forming the laser plane.
 // step_x: distance between two consecutive lines of the laser plane.
 // threshold: maximum distance between two points that belong to the same
-// intersection line-
+// intersection line.
 // model: the model whose intersection with the laser plane will be computed.
 // laser_incline: laser angle with respect to the horizon.
 // laser_aperture: aperture angle of the laser.
-// side: left or right laser
+// side: left or right laser.
 //
 // Output parameters:
-// intersections: vector storing the coordinates of the intersection points
+// intersections: vector storing the coordinates of the intersection points.
 void ComputeIntersections(
     osg::Vec3d start, float step_x, float threshold, osg::Node* model,
     float laser_incline, float laser_aperture, bool side,
-    std::vector<osg::ref_ptr<osg::Vec3Array> >* intersections) {
+    vector<osg::ref_ptr<osg::Vec3Array> >* intersections) {
   // Converts laser incline and aperture from degrees to radians.
   laser_incline = 2 * M_PI * laser_incline / 360;
   laser_aperture = 2 * M_PI * laser_aperture / 360;
 
-  // Initializes laser height, length and half the size of laser width.
+  // Initializes laser height and length and halves the laser width.
   float laser_height =
       EuclideanDistance(osg::Vec3d(start.x(), start.y(), -1000), start);
   float laser_length = laser_height / cos(M_PI / 2 - laser_incline);
@@ -246,19 +237,19 @@ void ComputeIntersections(
     end_y_coord = -end_y_coord;
   }
 
-  // Array storing
+  // Array that will store the intersection points.
   osg::ref_ptr<osg::Vec3Array> vertices(new osg::Vec3Array());
   // Computes the intersection of each line of the laser plane and the model.
   for (int i = 0; i < (abs(x_end - x_start) / step_x); i++) {
-    // Defines the end coordinates of the line, taking the side (left or right
-    // laser) into account.
+    // Defines the end coordinates of the line, taking which laser is being
+    // considered into account.
     osg::Vec3d end;
-    if (side) {  // Right laser.
-      end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start) / 2,
-                       -end_y_coord + start.y(), end_z_coord);
-    } else {  // Left laser.
+    if (side) {  // Laser 1.
       end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start) / 2,
                        end_y_coord + start.y(), end_z_coord);
+    } else {  // Laser 2.
+      end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start) / 2,
+                       -end_y_coord + start.y(), end_z_coord);
     }
 
     // Initializes OpenSceneGraph intersector and links it to the model.
@@ -271,7 +262,7 @@ void ComputeIntersections(
       // If the current intersection point is farther than the threshold
       // distance from the last inserted point in the vertices array, it means
       // it belongs to a different line and the previous line ended and can be
-      // pushed into the intersection points vector, and the vertices vector is
+      // pushed into the intersection points vector. The vertices vector is then
       // emptied.
       if (vertices->size() != 0 &&
           (EuclideanDistance(
@@ -286,8 +277,9 @@ void ComputeIntersections(
           intersector->getFirstIntersection().localIntersectionPoint);
     }
   }
-  // If the vertices is not empty, its content is stored in the intersections
-  // array. This is necessary to ensure the last line/point found by the
+  // If the vertices vector is not empty, its content is stored in the
+  // intersections
+  // array. This is necessary to ensure the last line or point found by the
   // intersector is inserted into the intersection vector.
   if (vertices->size() != 0) {
     intersections->push_back(vertices);
@@ -300,7 +292,7 @@ void ComputeIntersections(
 // intersections: array storing the intersection points.
 // intersection_line_geode: geode used to store the drawables representing the
 // intersection points.
-void ShowIntersections(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
+void ShowIntersections(vector<osg::ref_ptr<osg::Vec3Array> > intersections,
                        osg::Geode* intersection_line_geode) {
   for (int i = 0; i < intersections.size(); i++) {
     // Initializes the geometry representing a line.
@@ -327,8 +319,105 @@ void ShowIntersections(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
                                                 intersections.at(i)->size()));
     }
 
-    // Adds the line (or the point) to the geode.
+    // Adds the line or the point to the geode.
     intersection_line_geode->addDrawable(line);
+  }
+}
+
+// Projects the intersection points onto an image plane whose parameters are
+// specified by the intrinsics matrix.
+//
+// Input parameters:
+// intersections: array storing the intersection points of each intersection
+// line.
+// intrinsics: intrinsics matrix.
+// input_parameters: struct containing the input parameters specified by the
+// user.
+//
+// Output parameters:
+// output: the image onto which the intersection points have been projected.
+void ProjectToImagePlane(vector<osg::ref_ptr<osg::Vec3Array> > intersections,
+                         Mat intrinsics, InputParameters* input_parameters,
+                         Mat& output) {
+  // Intersection line color (white).
+  const int kWhite = 255;
+
+  // Initializes translation and rotation vectors.
+  Mat translation_vector(3, 1, DataType<float>::type);
+  Mat rotation_vector(3, 1, DataType<float>::type);
+
+  translation_vector.at<float>(0) = input_parameters->x_camera_absolute;
+  translation_vector.at<float>(1) = input_parameters->y_camera_absolute;
+  translation_vector.at<float>(2) = input_parameters->z_camera_absolute;
+  rotation_vector.at<float>(0) = 0;
+  rotation_vector.at<float>(1) = 0;
+  rotation_vector.at<float>(2) = 0;
+
+  // Initializes the distortion vector to 0: distortion is ignored.
+  Mat distortion_coefficients(5, 1, DataType<float>::type);
+  distortion_coefficients.at<float>(0) = 0;
+  distortion_coefficients.at<float>(1) = 0;
+  distortion_coefficients.at<float>(2) = 0;
+  distortion_coefficients.at<float>(3) = 0;
+  distortion_coefficients.at<float>(4) = 0;
+
+  // Grayscale image to store a single projected intersection segment or point
+  // of the intersection line that is being computed.
+  Mat image = Mat::zeros(input_parameters->camera_height,
+                         input_parameters->camera_width, CV_8UC1);
+
+  // Projects all the intersections segments and points onto the image plane and
+  // connects them with eachother to form a line.
+  for (int i = 0; i < intersections.size(); i++) {
+    // Array storing the points of a single segment.
+    vector<Point3f> points;
+    // Array storing the projected points of a single segment.
+    vector<Point2f> projected_points;
+
+    // If the current segment is made up of more than a single point then it is
+    // a segment, otherwise it is a point.
+    if (intersections.at(i)->size() > 1) {
+      // Inserts all the points of the segment (the polyline vertices) into the
+      // points array.
+      for (int k = 0; k < intersections.at(i)->size(); k++) {
+        Point3f p;
+        p.x = intersections.at(i)->at(k).x();
+        p.y = intersections.at(i)->at(k).y();
+        p.z = intersections.at(i)->at(k).z();
+        points.push_back(p);
+      }
+      // Projects the points onto the image plane.
+      projectPoints(points, rotation_vector, translation_vector, intrinsics,
+                    distortion_coefficients, projected_points);
+
+      // Array storing the projected points with integer coordinates.
+      vector<Point2i> projected_points_integer;
+      // Converts the projected points' coordinates to integer, pushing the new
+      // points into the array.
+      for (int i = 0; i < projected_points.size(); i++) {
+        Point2i p;
+        p.x = (int)projected_points.at(i).x;
+        p.y = (int)projected_points.at(i).y;
+        projected_points_integer.push_back(p);
+      }
+      // Computes the polyline using the projected points as vertices.
+      polylines(image, projected_points_integer, 0,
+                Scalar(kWhite, kWhite, kWhite));
+      // Merges the polyline with the output image.
+      bitwise_or(image, output, output);
+    } else {
+      // Projects the single point onto the image plane and adds it to the
+      // output image.
+      Point3f point;
+      point.x = intersections.at(i)->at(0).x();
+      point.y = intersections.at(i)->at(0).y();
+      point.z = intersections.at(i)->at(0).z();
+      points.push_back(point);
+      projectPoints(points, rotation_vector, translation_vector, intrinsics,
+                    distortion_coefficients, projected_points);
+      Point2f proj_point = projected_points.at(0);
+      output.at<uchar>(Point((int)proj_point.x, (int)proj_point.y)) = kWhite;
+    }
   }
 }
 
@@ -352,15 +441,15 @@ float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
 // Output parameters:
 // intrinsics_matrix: matrix storing the intrinsics parameters.
 // distortion_matrix: matrix storing the distortion parameters.
-bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
-                      std::vector<double>& distortion_matrix) {
+bool IntrinsicsParser(string filename, osg::Matrixf& intrinsics_matrix,
+                      vector<double>& distortion_matrix) {
   // Reads the input XML file.
   osgDB::XmlNode* node = osgDB::readXmlFile(filename);
 
   // Reads intrinsics.
   if (node->children.at(0)->properties["Rows"] != std::to_string(3) ||
       node->children.at(0)->properties["Cols"] != std::to_string(3)) {
-    std::cout << "Error in intrinsics matrix." << std::endl;
+    cout << "Error in intrinsics matrix." << endl;
     return false;
   }
   for (int i = 0; i < 3; i++) {
@@ -373,7 +462,7 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
   // Reads distortion parameters.
   if (node->children.at(1)->properties["Rows"] != std::to_string(1) ||
       node->children.at(1)->properties["Cols"] != std::to_string(5)) {
-    std::cout << "Error in distortion vector." << std::endl;
+    cout << "Error in distortion vector." << endl;
     return false;
   }
   for (int i = 0; i < 5; i++) {
@@ -382,69 +471,4 @@ bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
   }
 
   return true;
-}
-
-void ProjectToImagePlane(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
- Mat intrinsics, struct InputParameters* input_parameters, Mat& output) {
-    Mat tVec(3, 1, DataType<float>::type); // Translation vector
-    Mat rVec(3, 1, DataType<float>::type); // Rotation vector
-     
-    tVec.at<float>(0) = input_parameters->x_camera_absolute;
-    tVec.at<float>(1) = input_parameters->y_camera_absolute;
-    tVec.at<float>(2) = input_parameters->z_camera_absolute;
-    rVec.at<float>(0) = 0;
-    rVec.at<float>(1) = 0;
-    rVec.at<float>(2) = 0;
-        
-    cv::Mat distCoeffs(5, 1, cv::DataType<float>::type);
-    distCoeffs.at<float>(0) = 0;
-    distCoeffs.at<float>(1) = 0;
-    distCoeffs.at<float>(2) = 0;
-    distCoeffs.at<float>(3) = 0;
-    distCoeffs.at<float>(4) = 0;  
-    
-    Vec3i color;
-    color[0] = 255;
-    color[1] = 255;
-    color[2] = 255;
-    
-    Mat image = Mat::zeros(input_parameters->camera_height,input_parameters->camera_width,CV_8UC1);
-     
-    for (int i = 0; i < intersections.size(); i++) {
-    std::vector<cv::Point3f> points;
-    std::vector<cv::Point2f> projectedPoints;
-    
-    if (intersections.at(i)->size() > 1) { // Ho una linea
-      for(int k=0; k<intersections.at(i)->size(); k++) { // Intersections.at(i) 
-                                                        // contiene più punti,
-                                                        // i vertici della polilinea
-        cv::Point3f p;
-        p.x = intersections.at(i)->at(k).x();
-        p.y = intersections.at(i)->at(k).y();
-        p.z = intersections.at(i)->at(k).z();
-        points.push_back(p);
-      }    
-      projectPoints(points, rVec, tVec, intrinsics, distCoeffs, projectedPoints);
-      std::vector<cv::Point2i> projectedPoints_integer;
-      for(int i = 0; i < projectedPoints.size(); i++){
-          Point2i p;
-          p.x = (int) projectedPoints.at(i).x;
-          p.y = (int) projectedPoints.at(i).y;
-          projectedPoints_integer.push_back(p);
-      }
-      polylines(image, projectedPoints_integer, 0, Scalar(255,255,255));     
-      bitwise_or(image, output, output);
-    } else { // Ho un punto
-      Point3f point;
-      point.x = intersections.at(i)->at(0).x();
-      point.y = intersections.at(i)->at(0).y();
-      point.z = intersections.at(i)->at(0).z();
-      points.push_back(point);
-      projectPoints(points, rVec, tVec, intrinsics, distCoeffs, projectedPoints); 
-      Point2f proj_point = projectedPoints.at(0);
-      output.at<uchar>(Point((int) proj_point.x, (int) proj_point.y)) = 255;
-    }  
-  }    
-    
-  //imwrite("test.png", output);
 }

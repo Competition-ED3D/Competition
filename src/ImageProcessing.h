@@ -24,14 +24,15 @@ using std::endl;
 using std::vector;
 
 int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
-                    struct InputParameters* input_parameters, 
+                    struct InputParameters* input_parameters,
                     vector<Point3f>& point_cloud_points);
 void LoadIntersectionPoints(Mat intersections,
                             vector<Point3f>& intersection_points);
 void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics,
-                  struct InputParameters* input_parameters, bool roi, 
+                  struct InputParameters* input_parameters, bool roi,
                   vector<Point3f>& point_cloud_points);
-void BuildPointCloud(vector<Point3f> point_cloud_points);
+void BuildPointCloud(vector<Point3f> point_cloud_points,
+                     struct InputParameters* input_parameters);
 void ConvertCoordinates(Point3f& point, Mat intrinsics,
                         struct InputParameters* input_parameters);
 
