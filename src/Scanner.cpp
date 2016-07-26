@@ -90,7 +90,10 @@ int Scanner(InputParameters* input_parameters) {
 
   // Number of consecutive iterations where no intersections have been found.
   int failed_intersections = 0;
-
+  
+  // Sets up the first frame of the viewer.
+  viewer.frame();
+  
   // Scans the object, moving along the y-axis, analyzing the intersections
   // lines at each frame and processing it in order to build the point cloud.
   // Stops after no intersections have been found by both lasers for ten
