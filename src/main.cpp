@@ -7,12 +7,13 @@ int main(int argc, char *argv[]) {
   struct InputParameters *input_parameters = new InputParameters();
 
   // Reads input data from file and stores it in input_parameters.
-  if (!InputParser(argv[1], input_parameters)) {
+  // Executes model scanning  successful.
+  if (InputParser(argv[1], input_parameters))
+    Scanner(input_parameters);
+  else
     cout << "Error in input file." << endl;
-    return 1;
-  }
 
-  Scanner(input_parameters);
+  delete input_parameters;
 
   return 0;
 }

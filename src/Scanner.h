@@ -26,11 +26,12 @@ void ComputeIntersections(
     osg::Vec3d start, float step_x, float threshold, osg::Node* model,
     float laser_incline, float laser_aperture, bool side,
     std::vector<osg::ref_ptr<osg::Vec3Array> >* intersections);
-void ShowIntersections(std::vector<osg::ref_ptr<osg::Vec3Array> > intersections,
-                       osg::Geode* intersection_line_geode);
+void ShowIntersections(
+    const std::vector<osg::ref_ptr<osg::Vec3Array> >& intersections,
+    osg::Geode* intersection_line_geode);
 void ProjectToImagePlane(
-    std::vector<osg::ref_ptr<osg::Vec3Array> > intersections, Mat intrinsics,
-    InputParameters* input_parameters, Mat& output);
+    const std::vector<osg::ref_ptr<osg::Vec3Array> >& intersections,
+    Mat intrinsics, InputParameters* input_parameters, Mat& output);
 float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2);
 bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
                       std::vector<double>& distortion_matrix);

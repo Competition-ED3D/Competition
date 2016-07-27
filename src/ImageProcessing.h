@@ -73,17 +73,17 @@ struct InputParameters {
   bool save_point_cloud;
 };
 
-int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
+int ImageProcessing(const Mat& source, osg::Matrixf intrinsics_matrix,
                     InputParameters* input_parameters,
                     vector<Point3f>& point_cloud_points);
-void LoadIntersectionPoints(Mat intersections,
+void LoadIntersectionPoints(const Mat& intersections,
                             vector<Point3f>& intersection_points);
-void InsertPoints(vector<Point3f> intersection_points, Mat intrinsics,
+void InsertPoints(const vector<Point3f>& intersection_points, Mat intrinsics,
                   InputParameters* input_parameters, bool roi,
                   vector<Point3f>& point_cloud_points);
-void BuildPointCloud(vector<Point3f> point_cloud_points,
+void BuildPointCloud(const vector<Point3f>& point_cloud_points,
                      InputParameters* input_parameters);
 void ConvertCoordinates(Point3f& point, Mat intrinsics,
-                       InputParameters* input_parameters);
+                        InputParameters* input_parameters);
 
 #endif /* IMAGEPROCESSING_H */

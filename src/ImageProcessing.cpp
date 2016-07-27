@@ -16,7 +16,7 @@
 //
 // Output parameters:
 // point_cloud_points: the vector to fill with the 3D points.
-int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
+int ImageProcessing(const Mat& source, osg::Matrixf intrinsics_matrix,
                     InputParameters* input_parameters,
                     vector<Point3f>& point_cloud_points) {
   // Defines the Mat with intrinsics parameters.
@@ -39,8 +39,8 @@ int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
   region_of_interest = Rect(0, y_start_bottom, source.cols, roi_height);
   Mat image_roi_bottom(source, region_of_interest);
 
-  vector<cv::Point3f> intersection_points_top;
-  vector<cv::Point3f> intersection_points_bottom;
+  vector<Point3f> intersection_points_top;
+  vector<Point3f> intersection_points_bottom;
 
   // Stores the white pixels (that is the intersection points) in a vector.
   LoadIntersectionPoints(image_roi_top, intersection_points_top);
@@ -63,7 +63,7 @@ int ImageProcessing(Mat& source, osg::Matrixf intrinsics_matrix,
 //
 // Output parameters:
 // intersection_points: the output vector.
-void LoadIntersectionPoints(Mat intersections,
+void LoadIntersectionPoints(const Mat& intersections,
                             vector<Point3f>& intersection_points) {
   Point3f p;
   for (int i = 0; i < intersections.cols; i++) {
@@ -92,13 +92,12 @@ void LoadIntersectionPoints(Mat intersections,
 //
 // Output parameters:
 // point_cloud_points: the vector with the points in world coordinates.
-void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
+void InsertPoints(const vector<Point3f>& intersection_points, Mat intrinsics,
                   InputParameters* input_parameters, bool roi,
                   vector<Point3f>& point_cloud_points) {
   // Returns if no intersection points are found.
-  if (intersection_points.size() == 0) {
+  if (intersection_points.size() == 0)
     return;
-  }
 
   float pixel_size = input_parameters->pixel_size;
   float baseline = input_parameters->laser_distance;
@@ -152,7 +151,7 @@ void InsertPoints(vector<cv::Point3f> intersection_points, Mat intrinsics,
 // Input parameters:
 // point_cloud_points: vector containing the points to insert in the point
 // cloud.
-void BuildPointCloud(vector<Point3f> point_cloud_points,
+void BuildPointCloud(const vector<Point3f>& point_cloud_points,
                      struct InputParameters* input_parameters) {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr output(
       new pcl::PointCloud<pcl::PointXYZRGB>);

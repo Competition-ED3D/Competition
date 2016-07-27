@@ -90,10 +90,10 @@ int Scanner(InputParameters* input_parameters) {
 
   // Number of consecutive iterations where no intersections have been found.
   int failed_intersections = 0;
-  
+
   // Sets up the first frame of the viewer.
   viewer.frame();
-  
+
   // Scans the object, moving along the y-axis, analyzing the intersections
   // lines at each frame and processing it in order to build the point cloud.
   // Stops after no intersections have been found by both lasers for ten
@@ -295,8 +295,9 @@ void ComputeIntersections(
 // intersections: array storing the intersection points.
 // intersection_line_geode: geode used to store the drawables representing the
 // intersection points.
-void ShowIntersections(vector<osg::ref_ptr<osg::Vec3Array> > intersections,
-                       osg::Geode* intersection_line_geode) {
+void ShowIntersections(
+    const vector<osg::ref_ptr<osg::Vec3Array> >& intersections,
+    osg::Geode* intersection_line_geode) {
   for (int i = 0; i < intersections.size(); i++) {
     // Initializes the geometry representing a line.
     osg::Geometry* line = new osg::Geometry();
@@ -339,9 +340,9 @@ void ShowIntersections(vector<osg::ref_ptr<osg::Vec3Array> > intersections,
 //
 // Output parameters:
 // output: the image onto which the intersection points have been projected.
-void ProjectToImagePlane(vector<osg::ref_ptr<osg::Vec3Array> > intersections,
-                         Mat intrinsics, InputParameters* input_parameters,
-                         Mat& output) {
+void ProjectToImagePlane(
+    const vector<osg::ref_ptr<osg::Vec3Array> >& intersections, Mat intrinsics,
+    InputParameters* input_parameters, Mat& output) {
   // Intersection line color (white).
   const int kWhite = 255;
 
@@ -472,6 +473,8 @@ bool IntrinsicsParser(string filename, osg::Matrixf& intrinsics_matrix,
     distortion_matrix.push_back(std::stod(
         node->children.at(1)->children.at(0)->children.at(i)->contents));
   }
+
+  node->unref();
 
   return true;
 }
