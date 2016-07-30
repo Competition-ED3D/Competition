@@ -187,6 +187,7 @@ void BuildPointCloud(const vector<Point3f>& point_cloud_points,
     // Saves the point cloud to file if the save_point_cloud flag is set to
     // true.
     if (input_parameters->save_point_cloud) {
+      cout<< "Saving..." << endl;
       pcl::io::savePCDFileASCII("output.pcd", *output);
       cout << "Point cloud saved to file." << endl;
     }
