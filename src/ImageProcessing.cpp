@@ -100,7 +100,7 @@ void InsertPoints(const vector<Point3f>& intersection_points, Mat intrinsics,
     return;
 
   float pixel_size = input_parameters->pixel_size;
-  float baseline = input_parameters->laser_distance;
+  float baseline = input_parameters->baseline;
   float focal_length = input_parameters->focal_length;
   float y_start_top = input_parameters->roi_top_start;
   float y_start_bottom = input_parameters->roi_bottom_start;
@@ -143,54 +143,6 @@ void InsertPoints(const vector<Point3f>& intersection_points, Mat intrinsics,
     ConvertCoordinates(point, intrinsics, input_parameters);
 
     point_cloud_points.push_back(point);
-  }
-}
-
-// Builds the point cloud.
-//
-// Input parameters:
-// point_cloud_points: vector containing the points to insert in the point
-// cloud.
-void BuildPointCloud(const vector<Point3f>& point_cloud_points,
-                     struct InputParameters* input_parameters) {
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr output(
-      new pcl::PointCloud<pcl::PointXYZRGB>);
-  pcl::PointXYZRGB output_point;
-
-  // Builds the point cloud.
-  for (int i = 0; i < point_cloud_points.size(); i++) {
-    // Sets RGB values of the point.
-    output_point.r = 255;
-    output_point.g = 0;
-    output_point.b = 0;
-    // Sets XYZ coordinates of the point.
-    output_point.x = -point_cloud_points.at(i).x;
-    output_point.y = point_cloud_points.at(i).y;
-    output_point.z = point_cloud_points.at(i).z;
-    output->points.push_back(output_point);
-  }
-
-  output->width = 1;
-  output->height = output->points.size();
-
-  // Visualizes the point cloud if it is not empty.
-  if (output->points.size() > 0) {
-    cout << "Visualization... Press Q to exit." << endl;
-    pcl::visualization::PCLVisualizer viewer("Reconstructed model");
-    viewer.setBackgroundColor(0, 0, 0);
-    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(
-        output);
-    viewer.addPointCloud<pcl::PointXYZRGB>(output, rgb, "cloud");
-    viewer.spin();
-    viewer.close();
-
-    // Saves the point cloud to file if the save_point_cloud flag is set to
-    // true.
-    if (input_parameters->save_point_cloud) {
-      cout<< "Saving..." << endl;
-      pcl::io::savePCDFileASCII("output.pcd", *output);
-      cout << "Point cloud saved to file." << endl;
-    }
   }
 }
 

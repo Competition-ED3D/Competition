@@ -58,7 +58,7 @@ struct InputParameters {
   float roi_bottom_start;
 
   // Distance between the camera and each laser.
-  float laser_distance;
+  float baseline;
   // Laser angle with respect to the horizon.
   float laser_incline;
   // Aperture angle of the laser.
@@ -81,8 +81,6 @@ void LoadIntersectionPoints(const Mat& intersections,
 void InsertPoints(const vector<Point3f>& intersection_points, Mat intrinsics,
                   InputParameters* input_parameters, bool roi,
                   vector<Point3f>& point_cloud_points);
-void BuildPointCloud(const vector<Point3f>& point_cloud_points,
-                     InputParameters* input_parameters);
 void ConvertCoordinates(Point3f& point, Mat intrinsics,
                         InputParameters* input_parameters);
 

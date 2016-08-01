@@ -40,7 +40,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
       fs["z_camera_coord"].empty() || fs["camera_width"].empty() ||
       fs["camera_height"].empty() || fs["pixel_size"].empty() ||
       fs["focal_length"].empty() || fs["roi_height"].empty() ||
-      fs["roi_top_start"].empty() || fs["laser_distance"].empty() ||
+      fs["roi_top_start"].empty() || fs["baseline"].empty() ||
       fs["laser_incline"].empty() || fs["laser_aperture"].empty()) {
     cout << "Syntax error in input file." << endl;
     fs.release();
@@ -53,7 +53,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
       fs["z_camera_coord"].isNone() || fs["camera_width"].isNone() ||
       fs["camera_height"].isNone() || fs["pixel_size"].isNone() ||
       fs["focal_length"].isNone() || fs["roi_height"].isNone() ||
-      fs["roi_top_start"].isNone() || fs["laser_distance"].isNone() ||
+      fs["roi_top_start"].isNone() || fs["baseline"].isNone() ||
       fs["laser_incline"].isNone() || fs["laser_aperture"].isNone()) {
     cout << "Missing value in input file." << endl;
     fs.release();
@@ -106,7 +106,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
                                        input_parameters->roi_height;
   
   // The distance between the camera and the laser (baseline).
-  fs["laser_distance"] >> input_parameters->laser_distance;
+  fs["baseline"] >> input_parameters->baseline;
   // The angle between the laser and the horizon.
   fs["laser_incline"] >> input_parameters->laser_incline;
   // Aperture angle of the laser.
@@ -140,8 +140,8 @@ bool InputCheck(InputParameters *input_parameters) {
     cout << "FPS not within factory range." << endl;
     check = false;
   }
-  if (input_parameters->laser_distance < 500 ||
-      input_parameters->laser_distance > 800) {
+  if (input_parameters->baseline < 500 ||
+      input_parameters->baseline > 800) {
     cout << "Laser distance not within factory range." << endl;
     check = false;
   }

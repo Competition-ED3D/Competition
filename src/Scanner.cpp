@@ -108,13 +108,13 @@ int Scanner(InputParameters* input_parameters) {
     input_parameters->y_camera_absolute = camera_y - i * step_y;
 
     // Initializes laser parameters.
-    float laser_distance = input_parameters->laser_distance;
+    float baseline = input_parameters->baseline;
     float laser_incline = input_parameters->laser_incline;
     float laser_aperture = input_parameters->laser_aperture;
 
     // Origin coordinates of the lines forming the left laser plane.
     osg::Vec3d start_laser_1 = osg::Vec3d(
-        -camera_x, laser_distance + i * step_y - camera_y, -camera_z);
+        -camera_x, baseline + i * step_y - camera_y, -camera_z);
     // Array used to store left laser's intersection points.
     vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_1;
 
@@ -124,7 +124,7 @@ int Scanner(InputParameters* input_parameters) {
 
     // Origin coordinates of the lines forming the right laser plane.
     osg::Vec3d start_laser_2 = osg::Vec3d(
-        -camera_x, -laser_distance + i * step_y - camera_y, -camera_z);
+        -camera_x, -baseline + i * step_y - camera_y, -camera_z);
     // Array used to store right laser's intersection points.
     vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_2;
 
@@ -421,6 +421,54 @@ void ProjectToImagePlane(
                     distortion_coefficients, projected_points);
       Point2f proj_point = projected_points.at(0);
       output.at<uchar>(Point((int)proj_point.x, (int)proj_point.y)) = kWhite;
+    }
+  }
+}
+
+// Builds the point cloud.
+//
+// Input parameters:
+// point_cloud_points: vector containing the points to insert in the point
+// cloud.
+void BuildPointCloud(const vector<Point3f>& point_cloud_points,
+                     struct InputParameters* input_parameters) {
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr output(
+      new pcl::PointCloud<pcl::PointXYZRGB>);
+  pcl::PointXYZRGB output_point;
+
+  // Builds the point cloud.
+  for (int i = 0; i < point_cloud_points.size(); i++) {
+    // Sets RGB values of the point.
+    output_point.r = 255;
+    output_point.g = 0;
+    output_point.b = 0;
+    // Sets XYZ coordinates of the point.
+    output_point.x = -point_cloud_points.at(i).x;
+    output_point.y = point_cloud_points.at(i).y;
+    output_point.z = point_cloud_points.at(i).z;
+    output->points.push_back(output_point);
+  }
+
+  output->width = 1;
+  output->height = output->points.size();
+
+  // Visualizes the point cloud if it is not empty.
+  if (output->points.size() > 0) {
+    cout << "Visualization... Press Q to exit." << endl;
+    pcl::visualization::PCLVisualizer viewer("Reconstructed model");
+    viewer.setBackgroundColor(0, 0, 0);
+    pcl::visualization::PointCloudColorHandlerRGBField<pcl::PointXYZRGB> rgb(
+        output);
+    viewer.addPointCloud<pcl::PointXYZRGB>(output, rgb, "cloud");
+    viewer.spin();
+    viewer.close();
+
+    // Saves the point cloud to file if the save_point_cloud flag is set to
+    // true.
+    if (input_parameters->save_point_cloud) {
+      cout<< "Saving..." << endl;
+      pcl::io::savePCDFileASCII("output.pcd", *output);
+      cout << "Point cloud saved to file." << endl;
     }
   }
 }
