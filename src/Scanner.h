@@ -32,6 +32,8 @@ void ShowIntersections(
 void ProjectToImagePlane(
     const std::vector<osg::ref_ptr<osg::Vec3Array> >& intersections,
     Mat intrinsics, InputParameters* input_parameters, Mat& output);
+void BuildPointCloud(const vector<Point3f>& point_cloud_points,
+                     struct InputParameters* input_parameters);
 float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2);
 bool IntrinsicsParser(std::string filename, osg::Matrixf& intrinsics_matrix,
                       std::vector<double>& distortion_matrix);
