@@ -30,11 +30,14 @@ int ImageProcessing(const Mat& source, osg::Matrixf intrinsics_matrix,
   float roi_height = input_parameters->roi_height;
   float y_start_top = input_parameters->roi_top_start;
   float y_start_bottom = input_parameters->roi_bottom_start;
-
+  
+  // Flips the image horizontally.
+  flip(source, source, 1);
+  
   // Extracts the top roi from the image.
   Rect region_of_interest = Rect(0, y_start_top, source.cols, roi_height);
   Mat image_roi_top(source, region_of_interest);
-
+  
   // Extracts the bottom roi from the image.
   region_of_interest = Rect(0, y_start_bottom, source.cols, roi_height);
   Mat image_roi_bottom(source, region_of_interest);

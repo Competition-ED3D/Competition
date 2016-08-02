@@ -443,7 +443,7 @@ void BuildPointCloud(const vector<Point3f>& point_cloud_points,
     output_point.g = 0;
     output_point.b = 0;
     // Sets XYZ coordinates of the point.
-    output_point.x = -point_cloud_points.at(i).x;
+    output_point.x = point_cloud_points.at(i).x;
     output_point.y = point_cloud_points.at(i).y;
     output_point.z = point_cloud_points.at(i).z;
     output->points.push_back(output_point);
