@@ -345,6 +345,8 @@ void ProjectToImagePlane(
     InputParameters* input_parameters, Mat& output) {
   // Intersection line color (white).
   const int kWhite = 255;
+  const int width = input_parameters->camera_width;
+  const int height = input_parameters->camera_height;
 
   // Initializes translation and rotation vectors.
   Mat translation_vector(3, 1, DataType<float>::type);
@@ -402,7 +404,9 @@ void ProjectToImagePlane(
         Point2i p;
         p.x = (int)projected_points.at(i).x;
         p.y = (int)projected_points.at(i).y;
-        projected_points_integer.push_back(p);
+        // Checks if the point is within the given resolution.
+        if(0 <= p.x <= width && 0 <= p.y <= height)
+            projected_points_integer.push_back(p);
       }
       // Computes the polyline using the projected points as vertices.
       polylines(image, projected_points_integer, 0,
@@ -420,7 +424,9 @@ void ProjectToImagePlane(
       projectPoints(points, rotation_vector, translation_vector, intrinsics,
                     distortion_coefficients, projected_points);
       Point2f proj_point = projected_points.at(0);
-      output.at<uchar>(Point((int)proj_point.x, (int)proj_point.y)) = kWhite;
+      // Checks if the point is within the given resolution.
+      if(0 <= proj_point.x <= width && 0 <= proj_point.y <= height)
+        output.at<uchar>(Point((int)proj_point.x, (int)proj_point.y)) = kWhite;
     }
   }
 }
