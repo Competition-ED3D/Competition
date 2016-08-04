@@ -113,8 +113,8 @@ int Scanner(InputParameters* input_parameters) {
     float laser_aperture = input_parameters->laser_aperture;
 
     // Origin coordinates of the lines forming the left laser plane.
-    osg::Vec3d start_laser_1 = osg::Vec3d(
-        -camera_x, baseline + i * step_y - camera_y, -camera_z);
+    osg::Vec3d start_laser_1 =
+        osg::Vec3d(-camera_x, baseline + i * step_y - camera_y, -camera_z);
     // Array used to store left laser's intersection points.
     vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_1;
 
@@ -123,8 +123,8 @@ int Scanner(InputParameters* input_parameters) {
                          laser_aperture, LASER_1, &intersections_laser_1);
 
     // Origin coordinates of the lines forming the right laser plane.
-    osg::Vec3d start_laser_2 = osg::Vec3d(
-        -camera_x, -baseline + i * step_y - camera_y, -camera_z);
+    osg::Vec3d start_laser_2 =
+        osg::Vec3d(-camera_x, -baseline + i * step_y - camera_y, -camera_z);
     // Array used to store right laser's intersection points.
     vector<osg::ref_ptr<osg::Vec3Array> > intersections_laser_2;
 
@@ -405,10 +405,10 @@ void ProjectToImagePlane(
         p.x = (int)projected_points.at(i).x;
         p.y = (int)projected_points.at(i).y;
         // Checks if the point is within the given resolution.
-        if(p.x >=0 && p.x <= width && p.y >=0 && p.y <= height)
-            projected_points_integer.push_back(p);
+        if (p.x >= 0 && p.x <= width && p.y >= 0 && p.y <= height)
+          projected_points_integer.push_back(p);
       }
-      if(projected_points_integer.size() != 0) {
+      if (projected_points_integer.size() != 0) {
         // Computes the polyline using the projected points as vertices.
         polylines(image, projected_points_integer, 0,
                   Scalar(kWhite, kWhite, kWhite));
@@ -427,7 +427,8 @@ void ProjectToImagePlane(
                     distortion_coefficients, projected_points);
       Point2f proj_point = projected_points.at(0);
       // Checks if the point is within the given resolution.
-      if(proj_point.x >=0 && proj_point.x <= width && proj_point.y >=0 && proj_point.y <= height)
+      if (proj_point.x >= 0 && proj_point.x <= width && proj_point.y >= 0 &&
+          proj_point.y <= height)
         output.at<uchar>(Point((int)proj_point.x, (int)proj_point.y)) = kWhite;
     }
   }
@@ -474,7 +475,7 @@ void BuildPointCloud(const vector<Point3f>& point_cloud_points,
     // Saves the point cloud to file if the save_point_cloud flag is set to
     // true.
     if (input_parameters->save_point_cloud) {
-      cout<< "Saving..." << endl;
+      cout << "Saving..." << endl;
       pcl::io::savePCDFileASCII("output.pcd", *output);
       cout << "Point cloud saved to file." << endl;
     }
