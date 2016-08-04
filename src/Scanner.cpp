@@ -405,14 +405,16 @@ void ProjectToImagePlane(
         p.x = (int)projected_points.at(i).x;
         p.y = (int)projected_points.at(i).y;
         // Checks if the point is within the given resolution.
-        if(0 <= p.x <= width && 0 <= p.y <= height)
+        if(p.x >=0 && p.x <= width && p.y >=0 && p.y <= height)
             projected_points_integer.push_back(p);
       }
-      // Computes the polyline using the projected points as vertices.
-      polylines(image, projected_points_integer, 0,
-                Scalar(kWhite, kWhite, kWhite));
-      // Merges the polyline with the output image.
-      bitwise_or(image, output, output);
+      if(projected_points_integer.size() != 0) {
+        // Computes the polyline using the projected points as vertices.
+        polylines(image, projected_points_integer, 0,
+                  Scalar(kWhite, kWhite, kWhite));
+        // Merges the polyline with the output image.
+        bitwise_or(image, output, output);
+      }
     } else {
       // Projects the single point onto the image plane and adds it to the
       // output image.
@@ -425,7 +427,7 @@ void ProjectToImagePlane(
                     distortion_coefficients, projected_points);
       Point2f proj_point = projected_points.at(0);
       // Checks if the point is within the given resolution.
-      if(0 <= proj_point.x <= width && 0 <= proj_point.y <= height)
+      if(proj_point.x >=0 && proj_point.x <= width && proj_point.y >=0 && proj_point.y <= height)
         output.at<uchar>(Point((int)proj_point.x, (int)proj_point.y)) = kWhite;
     }
   }
