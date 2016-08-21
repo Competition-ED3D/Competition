@@ -28,7 +28,7 @@ struct InputParameters {
   // Filename of the model.
   string model_filename;
 
-  // Speed at which the system moves along the y axis (mm/s) and framerate.
+  // Speed at which the system moves along the Y axis (mm/s) and framerate.
   float scanning_speed;
   float fps;
 
@@ -53,7 +53,7 @@ struct InputParameters {
 
   // Roi height.
   float roi_height;
-  // Topmost y coordinate of each roi.
+  // Topmost Y coordinate of each roi.
   float roi_top_start;
   float roi_bottom_start;
 

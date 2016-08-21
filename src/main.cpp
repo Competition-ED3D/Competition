@@ -104,7 +104,7 @@ bool InputParser(string filename, InputParameters *input_parameters) {
   input_parameters->roi_bottom_start = input_parameters->camera_height -
                                        input_parameters->roi_top_start -
                                        input_parameters->roi_height;
-  
+
   // The distance between the camera and the laser (baseline).
   fs["baseline"] >> input_parameters->baseline;
   // The angle between the laser and the horizon.
@@ -114,6 +114,13 @@ bool InputParser(string filename, InputParameters *input_parameters) {
 
   fs.release();
 
+  // Terminates execution if the ROI is too wide to fit in a single half of the
+  // image.
+  if ((input_parameters->roi_top_start + input_parameters->roi_height) >
+      (input_parameters->camera_height / 2)) {
+    cout << "ROI not contained within a single half of the image." << endl;
+    return false;
+  }
   // Terminates execution if the user is not allowed to use arbitrary parameters
   // and some of said parameters are not within factory thresholds.
   if (input_parameters->factory_limitations && !InputCheck(input_parameters)) {
@@ -140,8 +147,7 @@ bool InputCheck(InputParameters *input_parameters) {
     cout << "FPS not within factory range." << endl;
     check = false;
   }
-  if (input_parameters->baseline < 500 ||
-      input_parameters->baseline > 800) {
+  if (input_parameters->baseline < 500 || input_parameters->baseline > 800) {
     cout << "Laser distance not within factory range." << endl;
     check = false;
   }
