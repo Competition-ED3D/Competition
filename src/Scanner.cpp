@@ -234,12 +234,6 @@ void ComputeIntersections(
   float x_start = start.x() + laser_width_half;
   float x_end = start.x() - laser_width_half;
 
-  // If the y coordinate of origin of the lines is lower than the end's, the end
-  // coordinate is flipped.
-  if (start.y() < end_y_coord) {
-    end_y_coord = -end_y_coord;
-  }
-
   // Array that will store the intersection points.
   osg::ref_ptr<osg::Vec3Array> vertices(new osg::Vec3Array());
   // Computes the intersection of each line of the laser plane and the model.
@@ -249,10 +243,10 @@ void ComputeIntersections(
     osg::Vec3d end;
     if (side) {  // Laser 1.
       end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start) / 2,
-                       end_y_coord + start.y(), end_z_coord);
+                       -end_y_coord + start.y(), end_z_coord);
     } else {  // Laser 2.
       end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start) / 2,
-                       -end_y_coord + start.y(), end_z_coord);
+                       end_y_coord + start.y(), end_z_coord);
     }
 
     // Initializes OpenSceneGraph intersector and links it to the model.

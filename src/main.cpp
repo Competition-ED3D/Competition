@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
   struct InputParameters *input_parameters = new InputParameters();
 
   // Reads input data from file and stores it in input_parameters.
-  // Executes model scanning  successful.
+  // Executes model scanning if successful.
   if (InputParser(argv[1], input_parameters))
     Scanner(input_parameters);
   else
@@ -134,8 +134,8 @@ bool InputParser(string filename, InputParameters *input_parameters) {
 // boundaries, returning false if that is the case.
 //
 // Input parameters:
-// input_parameters: the struct to fill with the input parameters specified by
-// the user.
+// input_parameters: struct containing the input parameters specified by the
+// user.
 bool InputCheck(InputParameters *input_parameters) {
   bool check = true;
   if (input_parameters->scanning_speed < 100 ||
