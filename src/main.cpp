@@ -23,8 +23,8 @@ int main(int argc, char *argv[]) {
 //
 // Input parameters:
 // filename: the XML filename.
-// input_parameters: the struct to fill with the input parameters specified by
-// the user.
+// input_parameters: struct containing the input parameters specified by the
+// user.
 bool InputParser(string filename, InputParameters *input_parameters) {
   FileStorage fs(filename, FileStorage::READ);
 
@@ -77,7 +77,8 @@ bool InputParser(string filename, InputParameters *input_parameters) {
 
   // The filename of the model to scan.
   fs["model_filename"] >> input_parameters->model_filename;
-
+  
+  // Scanning speed and camera framerate.
   fs["scanning_speed"] >> input_parameters->scanning_speed;
   fs["fps"] >> input_parameters->fps;
 

@@ -38,6 +38,7 @@ save_point_cloud: if set to 1, the point_cloud is saved to an output file before
 
 
 Make sure that a ROI fits in a single half (height-wise) of the image: that is to say, roi_height + roi_top_start should be less than camera_height/2.
+The bottom roi is computed automatically using roi_height and roi_top_start as a reference. The rois are symmetric with respect to the middle (height-wise) of the image.
 
 Please note that, when using the camera intrinsics provided by the company (stored in data/camera.xml), the camera-related parameters should be set as follows:
 

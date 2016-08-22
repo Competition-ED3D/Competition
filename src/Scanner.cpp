@@ -93,9 +93,14 @@ int Scanner(InputParameters* input_parameters) {
 
   // Sets up the first frame of the viewer.
   viewer.frame();
+  
+  // Initializes laser parameters.
+  float baseline = input_parameters->baseline;
+  float laser_incline = input_parameters->laser_incline;
+  float laser_aperture = input_parameters->laser_aperture;
 
   // Scans the object, moving along the y-axis, analyzing the intersections
-  // lines at each frame and processing it in order to build the point cloud.
+  // lines at each frame and processing them in order to build the point cloud.
   // Stops after no intersections have been found by both lasers for ten
   // consecutive frames.
   for (int i = 0; failed_intersections < 10; i++) {
@@ -106,11 +111,6 @@ int Scanner(InputParameters* input_parameters) {
     viewer.getCamera()->setViewMatrix(cameraTrans);
     // Updates camera position.
     input_parameters->y_camera_absolute = camera_y - i * step_y;
-
-    // Initializes laser parameters.
-    float baseline = input_parameters->baseline;
-    float laser_incline = input_parameters->laser_incline;
-    float laser_aperture = input_parameters->laser_aperture;
 
     // Origin coordinates of the lines forming the left laser plane.
     osg::Vec3d start_laser_1 =
@@ -242,10 +242,10 @@ void ComputeIntersections(
     // considered into account.
     osg::Vec3d end;
     if (side) {  // Laser 1.
-      end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start) / 2,
+      end = osg::Vec3d(end_x_coord - i * step_x + fabs(x_end - x_start) / 2,
                        -end_y_coord + start.y(), end_z_coord);
     } else {  // Laser 2.
-      end = osg::Vec3d(end_x_coord - i * step_x + abs(x_end - x_start) / 2,
+      end = osg::Vec3d(end_x_coord - i * step_x + fabs(x_end - x_start) / 2,
                        end_y_coord + start.y(), end_z_coord);
     }
 
@@ -275,9 +275,8 @@ void ComputeIntersections(
     }
   }
   // If the vertices vector is not empty, its content is stored in the
-  // intersections
-  // array. This is necessary to ensure the last line or point found by the
-  // intersector is inserted into the intersection vector.
+  // intersections array. This is necessary to ensure the last line or point
+  // found by the intersector is inserted into the intersection vector.
   if (vertices->size() != 0) {
     intersections->push_back(vertices);
   }
@@ -375,7 +374,7 @@ void ProjectToImagePlane(
     vector<Point2f> projected_points;
 
     // If the current segment is made up of more than a single point then it is
-    // a segment, otherwise it is a point.
+    // a polyline, otherwise it is a point.
     if (intersections.at(i)->size() > 1) {
       // Inserts all the points of the segment (the polyline vertices) into the
       // points array.

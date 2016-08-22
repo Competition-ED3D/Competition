@@ -12,6 +12,7 @@ find_package(osgUtil)
 find_package(OpenCV)
 find_package(PCL)
 
+# Please insert the correct path to these libraries if they are not found automatically
 if(NOT ${OPENTHREADS_FOUND})
 	set(OPENTHREADS_LIBRARY /usr/local/lib64/libOpenThreads.so)
 	message(STATUS Found\ OPENTHREADS_LIBRARY)
@@ -58,6 +59,6 @@ include_directories(${OSG_INCLUDE_DIR} ${OSGDB_INCLUDE_DIR} ${OSGUTIL_INCLUDE_DI
 link_directories(${OSG_LIB_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(main ${SOURCES})
+add_executable(LaserScanner ${SOURCES})
 
-target_link_libraries(main ${OSG_LIBRARY} ${OSGDB_LIBRARY} ${OSGVIEWER_LIBRARY} ${OSGGA_LIBRARY} ${OSGUTIL_LIBRARY} ${OPENTHREADS_LIBRARY} ${OPENGL_LIBRARY} ${OpenCV_LIBS} ${PCL_LIBRARIES}) 
+target_link_libraries(LaserScanner ${OSG_LIBRARY} ${OSGDB_LIBRARY} ${OSGVIEWER_LIBRARY} ${OSGGA_LIBRARY} ${OSGUTIL_LIBRARY} ${OPENTHREADS_LIBRARY} ${OPENGL_LIBRARY} ${OpenCV_LIBS} ${PCL_LIBRARIES}) 

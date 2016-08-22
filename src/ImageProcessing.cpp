@@ -4,7 +4,7 @@
 #define LASER_1 true
 #define LASER_2 false
 
-// Processes an image retrieving the white pixels (that is the points of
+// Processes an image retrieving the white pixels (that is to say the points of
 // intersection between the laser and the model) from it and transforming them
 // in 3D points.
 //
@@ -45,7 +45,7 @@ int ImageProcessing(const Mat& source, osg::Matrixf intrinsics_matrix,
   vector<Point3f> intersection_points_top;
   vector<Point3f> intersection_points_bottom;
 
-  // Stores the white pixels (that is the intersection points) in a vector.
+  // Stores the white pixels (the intersection points) in a vector.
   LoadIntersectionPoints(image_roi_top, intersection_points_top);
   LoadIntersectionPoints(image_roi_bottom, intersection_points_bottom);
 
@@ -108,7 +108,7 @@ void InsertPoints(const vector<Point3f>& intersection_points, Mat intrinsics,
   float y_start_top = input_parameters->roi_top_start;
   float y_start_bottom = input_parameters->roi_bottom_start;
 
-  // The y coordinate of the principal point.
+  // The Y coordinate of the principal point.
   int c_y = intrinsics.at<float>(1, 2);
 
   float alpha = 90 - input_parameters->laser_incline;
