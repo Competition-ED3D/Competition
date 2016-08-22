@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <opencv_storage>
-	<model_filename>"data/prodotto.stl"</model_filename>
+	<model_filename>"data/bin4.stl"</model_filename>
 	<scanning_speed>1000</scanning_speed>
 	<fps>100</fps>
 	<intrinsics_filename>"data/camera.xml"</intrinsics_filename>
 	<x_camera_coord>0</x_camera_coord>
-	<y_camera_coord>390</y_camera_coord>
-	<z_camera_coord>-1400</z_camera_coord>
+	<y_camera_coord>-100</y_camera_coord>
+	<z_camera_coord>-3400</z_camera_coord>
 	<camera_width>2024</camera_width>
 	<camera_height>1088</camera_height>
 	<pixel_size>5.5e-3</pixel_size>
 	<focal_length>25</focal_length>
-	<roi_height>300</roi_height>
+	<roi_height>340</roi_height>
 	<roi_top_start>200</roi_top_start>
-	<baseline>500</baseline>
+	<laser_distance>500</laser_distance>
 	<laser_incline>70</laser_incline>
 	<laser_aperture>45</laser_aperture>
 	<factory_limitations>1</factory_limitations>

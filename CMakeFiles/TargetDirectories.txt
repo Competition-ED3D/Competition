@@ -1,1 +1,0 @@
-/home/marco/Uni/Elaborazione Dati 3D/Competition/CMakeFiles/main.dir
