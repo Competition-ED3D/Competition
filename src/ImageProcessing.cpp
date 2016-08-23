@@ -68,12 +68,14 @@ int ImageProcessing(const Mat& source, osg::Matrixf intrinsics_matrix,
 // intersection_points: the output vector.
 void LoadIntersectionPoints(const Mat& intersections,
                             vector<Point3f>& intersection_points) {
+  const int kWhite = 255;
+  
   Point3f p;
   for (int i = 0; i < intersections.cols; i++) {
     for (int j = 0; j < intersections.rows; j++) {
       Scalar intensity = intersections.at<uchar>(j, i);
       // Checks if the pixel is white.
-      if (intensity.val[0] == 255) {
+      if (intensity.val[0] == kWhite) {
         p.x = i;
         p.y = j;
         intersection_points.push_back(p);

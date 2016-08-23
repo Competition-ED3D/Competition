@@ -47,3 +47,4 @@ camera_height: 1088
 pixel_size: 5.5e-3
 focal_length: 25
 
+Make sure the syntax of data/camera.xml is NOT changed. Only the values contained in the <column> tags should be modified. The intrinsics matrix is represented in row-major order.

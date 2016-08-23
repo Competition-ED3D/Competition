@@ -66,9 +66,10 @@ int Scanner(InputParameters* input_parameters) {
 
   // Reads the camera resolution and matrix from the input files.
   osg::Matrixf intrinsics_matrix;
-  vector<double> distortion_matrix;
+  vector<float> distortion_vector;
   string filename = input_parameters->intrinsics_filename;
-  IntrinsicsParser(filename, intrinsics_matrix, distortion_matrix);
+  if(!IntrinsicsParser(filename, intrinsics_matrix, distortion_vector))
+    return 1;
 
   // Defines the distance (step-y) the system will cover along the y-axis
   // between each frame of the camera.
@@ -338,12 +339,13 @@ void ProjectToImagePlane(
     InputParameters* input_parameters, Mat& output) {
   // Intersection line color (white).
   const int kWhite = 255;
-  const int width = input_parameters->camera_width;
-  const int height = input_parameters->camera_height;
+  
+  int width = input_parameters->camera_width;
+  int height = input_parameters->camera_height;
 
   // Initializes translation and rotation vectors.
-  Mat translation_vector(3, 1, DataType<float>::type);
-  Mat rotation_vector(3, 1, DataType<float>::type);
+  Mat translation_vector(3, 1, CV_32F);
+  Mat rotation_vector(3, 1, CV_32F);
 
   translation_vector.at<float>(0) = input_parameters->x_camera_absolute;
   translation_vector.at<float>(1) = input_parameters->y_camera_absolute;
@@ -353,7 +355,7 @@ void ProjectToImagePlane(
   rotation_vector.at<float>(2) = 0;
 
   // Initializes the distortion vector to 0: distortion is ignored.
-  Mat distortion_coefficients(5, 1, DataType<float>::type);
+  Mat distortion_coefficients(5, 1, CV_32F);
   distortion_coefficients.at<float>(0) = 0;
   distortion_coefficients.at<float>(1) = 0;
   distortion_coefficients.at<float>(2) = 0;
@@ -496,32 +498,36 @@ float EuclideanDistance(osg::Vec3d point1, osg::Vec3d point2) {
 // intrinsics_matrix: matrix storing the intrinsics parameters.
 // distortion_matrix: matrix storing the distortion parameters.
 bool IntrinsicsParser(string filename, osg::Matrixf& intrinsics_matrix,
-                      vector<double>& distortion_matrix) {
+                      vector<float>& distortion_vector) {
   // Reads the input XML file.
   osgDB::XmlNode* node = osgDB::readXmlFile(filename);
 
   // Reads intrinsics.
-  if (node->children.at(0)->properties["Rows"] != std::to_string(3) ||
-      node->children.at(0)->properties["Cols"] != std::to_string(3)) {
+  if (atoi(node->children.at(0)->properties["Rows"].c_str()) != 3 ||
+      atoi(node->children.at(0)->properties["Cols"].c_str()) != 3) {
     cout << "Error in intrinsics matrix." << endl;
     return false;
   }
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
-      intrinsics_matrix(i, j) = std::stod(
-          node->children.at(0)->children.at(i)->children.at(j)->contents);
+      intrinsics_matrix(i, j) = atof(node->children.at(0)
+                                         ->children.at(i)
+                                         ->children.at(j)
+                                         ->contents.c_str());
     }
   }
 
   // Reads distortion parameters.
-  if (node->children.at(1)->properties["Rows"] != std::to_string(1) ||
-      node->children.at(1)->properties["Cols"] != std::to_string(5)) {
+  if (atoi(node->children.at(1)->properties["Rows"].c_str()) != 1 ||
+      atoi(node->children.at(1)->properties["Cols"].c_str()) != 5) {
     cout << "Error in distortion vector." << endl;
     return false;
   }
   for (int i = 0; i < 5; i++) {
-    distortion_matrix.push_back(std::stod(
-        node->children.at(1)->children.at(0)->children.at(i)->contents));
+    distortion_vector.push_back(atof(node->children.at(1)
+                                         ->children.at(0)
+                                         ->children.at(i)
+                                         ->contents.c_str()));
   }
 
   node->unref();
